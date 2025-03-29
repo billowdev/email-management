@@ -43,6 +43,12 @@ import {
   LoadingOutlined
 } from '@ant-design/icons'
 import { Header } from 'antd/es/layout/layout'
+import ExportOptionsComponent from '@/components/ExportOptionsComponent';
+import { 
+  exportRawTemplate, 
+  exportTemplateWithData, 
+  exportVariableSchema 
+} from '@/services/exportService';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -411,6 +417,18 @@ const handleUpdateVariable = async (variableId: string, updates: Partial<Templat
                   >
                     Full Page Preview
                   </Button>
+
+                  {selectedTemplate && (
+            <ExportOptionsComponent
+              html={selectedTemplate.defaultContent}
+              rawTemplateHtml={selectedTemplate.defaultContent}
+              previewData={previewData}
+              templateId={selectedTemplate.id}
+              templateName={selectedTemplate.name}
+            />
+          )}
+
+
                   {canDeleteTemplate && (
                     <Button 
                       key="delete" 

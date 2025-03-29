@@ -15,6 +15,7 @@ export async function GET(request: NextRequest, context: any) {
     // const templateId = searchParams.get("id") as string;
 
     const { id: templateId } = await context.params;
+    
     // const templateId = params?.id?.toString();
     // Check if template exists
     const template = await prisma.emailTemplate.findUnique({

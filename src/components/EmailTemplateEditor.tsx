@@ -17,6 +17,7 @@ import {
   deleteVariable, 
   updatePreviewData 
 } from '@/services/emailTemplateService';
+import ExportOptionsComponent from '@/components/ExportOptionsComponent';
 
 // Import Ant Design components
 import { Button, Select, Tooltip, Divider, Input, Card, Typography, Space, Tabs, Modal, Form, message } from 'antd'
@@ -687,13 +688,20 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
                 {previewMode ? 'Edit' : 'Preview'}
               </Button>
             </Tooltip>
-            <Button 
+            {/* <Button 
               type="primary" 
               icon={<DownloadOutlined />}
               onClick={exportTemplate}
             >
               Export
-            </Button>
+            </Button> */}
+              <ExportOptionsComponent
+            html={getPreviewHTML()}
+            rawTemplateHtml={htmlOutput}
+            previewData={localPreviewData}
+            templateId={templateId}
+            templateName={`Template-${templateId}`}
+          />
           </Space>
         </div>
       </Space>
