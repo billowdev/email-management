@@ -1,11 +1,12 @@
 // src/services/emailBackgroundService.ts
 import { BackgroundSettings } from '@/types/email-templates';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API || '';
 
 // Function to get background settings for a template
 export async function getTemplateBackground(templateId: string): Promise<BackgroundSettings | null> {
   try {
-    const response = await fetch(`/api/templates/${templateId}/background`);
-    
+    const response = await fetch(`${API_BASE_URL}/api/templates/${templateId}/background`);
+
     if (!response.ok) {
       if (response.status === 404) {
         // No background settings found, which is ok
@@ -27,7 +28,7 @@ export async function saveTemplateBackground(
   settings: BackgroundSettings
 ): Promise<BackgroundSettings> {
   try {
-    const response = await fetch(`/api/templates/${templateId}/background`, {
+    const response = await fetch(`${API_BASE_URL}/api/templates/${templateId}/background`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -61,7 +62,7 @@ export async function updateTemplateBackground(
 	}
   ): Promise<any> {
 	try {
-	  const response = await fetch(`/api/templates/${templateId}/background`, {
+	  const response = await fetch(`${API_BASE_URL}/api/templates/${templateId}/background`, {
 		method: 'PUT',
 		headers: {
 		  'Content-Type': 'application/json',
