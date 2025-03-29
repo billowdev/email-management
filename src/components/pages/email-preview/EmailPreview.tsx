@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { PreviewData } from '@/types/email-templates'
-import ExportOptionsComponent from '@/components/ExportOptionsComponent'
+import ExportOptionsComponent from '@/components/editor/ExportOptionsComponent'
 // Import Ant Design components
 import { 
   Card, 

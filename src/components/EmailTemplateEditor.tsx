@@ -17,7 +17,12 @@ import {
   deleteVariable, 
   updatePreviewData 
 } from '@/services/emailTemplateService';
-import ExportOptionsComponent from '@/components/ExportOptionsComponent';
+import ExportOptionsComponent from '@/components/editor/ExportOptionsComponent';
+
+import ImageUploadComponent from '@/components/editor/ImageUploadComponent';
+import EmailSectionsComponent from '@/components/editor/EmailSectionsComponent';
+import EmailTableComponent from '@/components/editor/EmailTableComponent';
+import SocialLinksComponent from '@/components/editor/SocialLinksComponent';
 
 // Import Ant Design components
 import { Button, Select, Tooltip, Divider, Input, Card, Typography, Space, Tabs, Modal, Form, message } from 'antd'
@@ -42,6 +47,10 @@ import {
 import VariableTabs from './VariableTabsComponent'
 import AddVariableComponent from './AddVariableComponent'
 import EmailTemplateBackgroundEditor from './EmailTemplateBackgroundEditor'
+import TableRow from '@tiptap/extension-table-row'
+import TableHeader from '@tiptap/extension-table-header'
+import TableCell from '@tiptap/extension-table-cell'
+import Table from '@tiptap/extension-table'
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -121,7 +130,13 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
       Link.configure({
         openOnClick: false,
       }),
-      Image,
+      Image, // Add this
+      Table.configure({ // Add these table extensions
+        resizable: false,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
       TextStyle,
       Color,
       Variable,
@@ -538,176 +553,202 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
   // Define Editor Toolbar
   const EditorToolbar = () => (
     <div className="bg-white border-b mb-4 pb-4">
-      <Space direction="horizontal" className="flex flex-wrap gap-2">
-        <Space>
-          <Tooltip title="Bold">
-            <Button 
-              type={editor?.isActive('bold') ? 'primary' : 'default'}
-              icon={<BoldOutlined />} 
-              onClick={() => editor?.chain().focus().toggleBold().run()}
-              disabled={previewMode}
-            />
-          </Tooltip>
-          <Tooltip title="Italic">
-            <Button 
-              type={editor?.isActive('italic') ? 'primary' : 'default'}
-              icon={<ItalicOutlined />} 
-              onClick={() => editor?.chain().focus().toggleItalic().run()}
-              disabled={previewMode}
-            />
-          </Tooltip>
-          <Tooltip title="Heading">
-            <Button 
-              type={editor?.isActive('heading', { level: 2 }) ? 'primary' : 'default'}
-              onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-              disabled={previewMode}
-            >
-              H2
-            </Button>
-          </Tooltip>
-        </Space>
-        
-        <Divider type="vertical" className="h-8" />
-        
-        <Space>
-          <Tooltip title="Align Left">
-            <Button 
-              type={editor?.isActive({ textAlign: 'left' }) ? 'primary' : 'default'}
-              icon={<AlignLeftOutlined />} 
-              onClick={() => editor?.chain().focus().setTextAlign('left').run()}
-              disabled={previewMode}
-            />
-          </Tooltip>
-          <Tooltip title="Align Center">
-            <Button 
-              type={editor?.isActive({ textAlign: 'center' }) ? 'primary' : 'default'}
-              icon={<AlignCenterOutlined />} 
-              onClick={() => editor?.chain().focus().setTextAlign('center').run()}
-              disabled={previewMode}
-            />
-          </Tooltip>
-          <Tooltip title="Align Right">
-            <Button 
-              type={editor?.isActive({ textAlign: 'right' }) ? 'primary' : 'default'}
-              icon={<AlignRightOutlined />} 
-              onClick={() => editor?.chain().focus().setTextAlign('right').run()}
-              disabled={previewMode}
-            />
-          </Tooltip>
-        </Space>
-        
-        <Divider type="vertical" className="h-8" />
-        
-        <Space>
-          <Tooltip title="Ordered List">
-            <Button 
-              type={editor?.isActive('orderedList') ? 'primary' : 'default'}
-              icon={<OrderedListOutlined />} 
-              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-              disabled={previewMode}
-            />
-          </Tooltip>
-          <Tooltip title="Bullet List">
-            <Button 
-              type={editor?.isActive('bulletList') ? 'primary' : 'default'}
-              icon={<UnorderedListOutlined />} 
-              onClick={() => editor?.chain().focus().toggleBulletList().run()}
-              disabled={previewMode}
-            />
-          </Tooltip>
-        </Space>
-        
-        <Divider type="vertical" className="h-8" />
-        
-        <Space>
-          <Select
-            placeholder="Text Color"
-            style={{ width: 120 }}
-            value={editor?.getAttributes('textStyle').color || '#000000'}
-            onChange={(value: string) => {
-              editor?.chain().focus().setColor(value).run();
-            }}
-            popupMatchSelectWidth={false}
-            disabled={previewMode}
-          >
-            <Option value="#000000">
-              <Space>
-                <span className="inline-block w-4 h-4 bg-black rounded-sm"></span>
-                Black
-              </Space>
-            </Option>
-            <Option value="#2563eb">
-              <Space>
-                <span className="inline-block w-4 h-4 bg-blue-600 rounded-sm"></span>
-                Blue
-              </Space>
-            </Option>
-            <Option value="#059669">
-              <Space>
-                <span className="inline-block w-4 h-4 bg-green-600 rounded-sm"></span>
-                Green
-              </Space>
-            </Option>
-            <Option value="#dc2626">
-              <Space>
-                <span className="inline-block w-4 h-4 bg-red-600 rounded-sm"></span>
-                Red
-              </Space>
-            </Option>
-            <Option value="#7c3aed">
-              <Space>
-                <span className="inline-block w-4 h-4 bg-purple-600 rounded-sm"></span>
-                Purple
-              </Space>
-            </Option>
-          </Select>
-          
-          <Tooltip title="Add Link">
-            <Button 
-              type={editor?.isActive('link') ? 'primary' : 'default'}
-              icon={<LinkOutlined />} 
-              onClick={() => {
-                const url = window.prompt('Enter the URL:');
-                if (url) {
-                  editor?.chain().focus().setLink({ href: url }).run();
-                }
-              }}
-              disabled={previewMode}
-            />
-          </Tooltip>
-        </Space>
-        
-        <div className="ml-auto">
+      <div className="mb-2">
+        <Space direction="horizontal" className="flex flex-wrap gap-2">
+          {/* Text Formatting Controls */}
           <Space>
-            <Tooltip title={previewMode ? "Edit Mode" : "Preview Mode"}>
+            <Tooltip title="Bold">
               <Button 
-                type={previewMode ? 'primary' : 'default'}
-                icon={previewMode ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-                onClick={() => setPreviewMode(!previewMode)}
+                type={editor?.isActive('bold') ? 'primary' : 'default'}
+                icon={<BoldOutlined />} 
+                onClick={() => editor?.chain().focus().toggleBold().run()}
+                disabled={previewMode}
+              />
+            </Tooltip>
+            <Tooltip title="Italic">
+              <Button 
+                type={editor?.isActive('italic') ? 'primary' : 'default'}
+                icon={<ItalicOutlined />} 
+                onClick={() => editor?.chain().focus().toggleItalic().run()}
+                disabled={previewMode}
+              />
+            </Tooltip>
+            <Tooltip title="Heading">
+              <Button 
+                type={editor?.isActive('heading', { level: 2 }) ? 'primary' : 'default'}
+                onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                disabled={previewMode}
               >
-                {previewMode ? 'Edit' : 'Preview'}
+                H2
               </Button>
             </Tooltip>
-            {/* <Button 
-              type="primary" 
-              icon={<DownloadOutlined />}
-              onClick={exportTemplate}
-            >
-              Export
-            </Button> */}
-              <ExportOptionsComponent
-            html={getPreviewHTML()}
-            rawTemplateHtml={htmlOutput}
-            previewData={localPreviewData}
-            templateId={templateId}
-            templateName={`Template-${templateId}`}
-          />
+            <Tooltip title="Heading">
+              <Button 
+                type={editor?.isActive('heading', { level: 3 }) ? 'primary' : 'default'}
+                onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+                disabled={previewMode}
+              >
+                H3
+              </Button>
+            </Tooltip>
           </Space>
-        </div>
-      </Space>
-    </div>
-  );
-
+          
+          <Divider type="vertical" className="h-8" />
+          
+          {/* Alignment Controls */}
+          <Space>
+            <Tooltip title="Align Left">
+              <Button 
+                type={editor?.isActive({ textAlign: 'left' }) ? 'primary' : 'default'}
+                icon={<AlignLeftOutlined />} 
+                onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                disabled={previewMode}
+              />
+            </Tooltip>
+            <Tooltip title="Align Center">
+              <Button 
+                type={editor?.isActive({ textAlign: 'center' }) ? 'primary' : 'default'}
+                icon={<AlignCenterOutlined />} 
+                onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                disabled={previewMode}
+              />
+            </Tooltip>
+            <Tooltip title="Align Right">
+              <Button 
+                type={editor?.isActive({ textAlign: 'right' }) ? 'primary' : 'default'}
+                icon={<AlignRightOutlined />} 
+                onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                disabled={previewMode}
+              />
+            </Tooltip>
+          </Space>
+          
+          <Divider type="vertical" className="h-8" />
+          
+          {/* Lists Controls */}
+          <Space>
+            <Tooltip title="Ordered List">
+              <Button 
+                type={editor?.isActive('orderedList') ? 'primary' : 'default'}
+                icon={<OrderedListOutlined />} 
+                onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                disabled={previewMode}
+              />
+            </Tooltip>
+            <Tooltip title="Bullet List">
+              <Button 
+                type={editor?.isActive('bulletList') ? 'primary' : 'default'}
+                icon={<UnorderedListOutlined />} 
+                onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                disabled={previewMode}
+              />
+            </Tooltip>
+          </Space>
+          
+          <Divider type="vertical" className="h-8" />
+          
+          {/* Link & Colors */}
+          <Space>
+            <Select
+              placeholder="Text Color"
+              style={{ width: 120 }}
+              value={editor?.getAttributes('textStyle').color || '#000000'}
+              onChange={(value: string) => {
+                editor?.chain().focus().setColor(value).run();
+              }}
+              popupMatchSelectWidth={false}
+              disabled={previewMode}
+            >
+              <Option value="#000000">
+                <Space>
+                  <span className="inline-block w-4 h-4 bg-black rounded-sm"></span>
+                  Black
+                </Space>
+              </Option>
+              <Option value="#2563eb">
+                <Space>
+                  <span className="inline-block w-4 h-4 bg-blue-600 rounded-sm"></span>
+                  Blue
+                </Space>
+              </Option>
+              <Option value="#059669">
+                <Space>
+                  <span className="inline-block w-4 h-4 bg-green-600 rounded-sm"></span>
+                  Green
+                </Space>
+              </Option>
+              <Option value="#dc2626">
+                <Space>
+                  <span className="inline-block w-4 h-4 bg-red-600 rounded-sm"></span>
+                  Red
+                </Space>
+              </Option>
+              <Option value="#7c3aed">
+                <Space>
+                  <span className="inline-block w-4 h-4 bg-purple-600 rounded-sm"></span>
+                  Purple
+                </Space>
+              </Option>
+            </Select>
+            
+            <Tooltip title="Add Link">
+              <Button 
+                type={editor?.isActive('link') ? 'primary' : 'default'}
+                icon={<LinkOutlined />} 
+                onClick={() => {
+                  const url = window.prompt('Enter the URL:');
+                  if (url) {
+                    editor?.chain().focus().setLink({ href: url }).run();
+                  }
+                }}
+                disabled={previewMode}
+              />
+            </Tooltip>
+          </Space>
+        </Space>
+      </div>
+      
+      {/* Second row with email-specific components */}
+      <div className="mt-2">
+        <Space wrap>
+          {/* Image Upload Component */}
+          <ImageUploadComponent editor={editor} />
+          
+          {/* Email Sections Component */}
+          <EmailSectionsComponent editor={editor} />
+          
+          {/* Email Table Component */}
+          <EmailTableComponent editor={editor} />
+          
+          {/* Social Links Component */}
+          <SocialLinksComponent editor={editor} />
+          
+          <div className="ml-auto">
+            <Space>
+              <Tooltip title={previewMode ? "Edit Mode" : "Preview Mode"}>
+                <Button 
+                  type={previewMode ? 'primary' : 'default'}
+                  icon={previewMode ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                  onClick={() => setPreviewMode(!previewMode)}
+                >
+                  {previewMode ? 'Edit' : 'Preview'}
+                </Button>
+              </Tooltip>
+              
+              {/* Export Options Component */}
+              <ExportOptionsComponent
+                html={getPreviewHTML()}
+                rawTemplateHtml={htmlOutput}
+                previewData={localPreviewData}
+                templateId={templateId}
+                templateName={`Template-${templateId}`}
+              />
+            </Space>
+          </div>
+        </Space>
+      </div>
+    </div>);
+    
   // Define tabs for the editor
   const tabItems: TabsProps['items'] = [
     {

@@ -27,7 +27,7 @@ export default function EditorPage() {
   
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6 text-white">Email Template Editor</h1>
+      <h1 className="text-2xl font-bold mb-6 text-white">Email Template Editor - Rich text using Tiptap</h1>
       
       <div className="mb-6">
         <select 

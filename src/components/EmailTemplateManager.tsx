@@ -43,7 +43,7 @@ import {
   LoadingOutlined
 } from '@ant-design/icons'
 import { Header } from 'antd/es/layout/layout'
-import ExportOptionsComponent from '@/components/ExportOptionsComponent';
+import ExportOptionsComponent from '@/components/editor/ExportOptionsComponent';
 import { 
   exportRawTemplate, 
   exportTemplateWithData, 
@@ -394,7 +394,7 @@ const handleUpdateVariable = async (variableId: string, updates: Partial<Templat
         <Header className="bg-white p-6 rounded-lg shadow-sm mb-6">
           <div className="flex justify-between items-center">
             <div>
-                <Title level={3} className="mb-0" style={{ color: 'white' }}>Email Template Editor</Title>
+                <Title level={3} className="mb-0" style={{ color: 'white' }}>Email Template Editor - Rich text using Tiptap</Title>
               <Text type="secondary">Create and manage email templates</Text>
             </div>
             <Space>
