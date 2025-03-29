@@ -315,7 +315,7 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
         <Header className="bg-white p-6 rounded-lg shadow-sm mb-6">
           <div className="flex justify-between items-center">
             <div>
-              <Title level={3} className="mb-0">Email Template Editor</Title>
+                <Title level={3} className="mb-0" style={{ color: 'white' }}>Email Template Editor</Title>
               <Text type="secondary">Create and manage email templates</Text>
             </div>
             <Space>
@@ -452,7 +452,7 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
             showIcon
           />
         )}
-        
+{/*         
         <Alert
           message="Tips for using the email editor"
           description={
@@ -469,7 +469,7 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
           showIcon
           icon={<InfoCircleOutlined />}
           className="mb-6"
-        />
+        /> */}
       </Content>
       
       {/* Delete Confirmation Modal */}
