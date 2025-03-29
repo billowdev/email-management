@@ -5,10 +5,11 @@ import prisma from '@/lib/prisma';
 // GET /api/templates/:id/preview - Get preview data for a template
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  // { params }: { params: { id: string } }
 ) {
   try {
-    const templateId = params.id;
+    const { searchParams } = new URL(request.url);
+    const templateId = searchParams.get("id") as string;
     
     const previewData = await prisma.previewData.findFirst({
       where: { emailTemplateId: templateId },
@@ -35,10 +36,12 @@ export async function GET(
 // PUT /api/templates/:id/preview - Update preview data for a template
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  // { params }: { params: { id: string } }
 ) {
   try {
-    const templateId = params.id;
+    const { searchParams } = new URL(request.url);
+    const templateId = searchParams.get("id") as string;
+
     const body = await request.json();
     const { data, name } = body;
     

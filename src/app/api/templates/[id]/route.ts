@@ -5,10 +5,11 @@ import prisma from '@/lib/prisma';
 // GET /api/templates/:id - Get template by ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  // { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const templateId = params.id;
+    const { searchParams } = new URL(request.url);
+    const templateId = searchParams.get("id") as string;
     
     const template = await prisma.emailTemplate.findUnique({
       where: { id: templateId },
@@ -38,10 +39,13 @@ export async function GET(
 // PUT /api/templates/:id - Update template
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  // context: { params: { id: string } }
 ) {
+  const { searchParams } = new URL(request.url);
+  const templateId = searchParams.get("id") as string;
+
   try {
-    const templateId = params.id;
+    // const templateId = params.id;
     const body = await request.json();
     const { name, description, defaultContent, variables } = body;
     
@@ -122,11 +126,12 @@ export async function PUT(
 // DELETE /api/templates/:id - Delete template
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  // { params }: { params: { id: string } }
 ) {
   try {
-    const templateId = params.id;
-    
+    const { searchParams } = new URL(request.url);
+    const templateId = searchParams.get("id") as string;
+
     // Check if template exists
     const template = await prisma.emailTemplate.findUnique({
       where: { id: templateId },

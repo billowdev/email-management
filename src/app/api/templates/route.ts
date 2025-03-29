@@ -1,7 +1,7 @@
 // src/app/api/templates/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, VariableType } from '@prisma/client';
 
 // Define the type for variable input
 type VariableInput = {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
               data: {
                 key: variable.key,
                 name: variable.name,
-                type: variable.type,
+                type: variable.type as VariableType,
                 defaultValue: variable.defaultValue || null,
                 description: variable.description || null,
                 required: variable.required || false,

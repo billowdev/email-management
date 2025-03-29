@@ -10,11 +10,16 @@ interface RouteParams {
 // GET /api/templates/:id/variables/:variableId - Get a specific variable
 export async function GET(
   request: NextRequest,
-  { params }: { params: RouteParams }
+  // { params }: { params: RouteParams }
 ) {
   try {
-    const { id: templateId, variableId } = params;
+    // const { id: templateId, variableId } = params;
     
+    const { searchParams } = new URL(request.url);
+    const templateId = searchParams.get("id") as string;
+    const variableId = searchParams.get("variableId") as string;
+
+
     const variable = await prisma.templateVariable.findFirst({
       where: {
         id: variableId,
@@ -42,10 +47,13 @@ export async function GET(
 // PUT /api/templates/:id/variables/:variableId - Update a variable
 export async function PUT(
   request: NextRequest,
-  { params }: { params: RouteParams }
+  // { params }: { params: RouteParams }
 ) {
   try {
-    const { id: templateId, variableId } = params;
+    const { searchParams } = new URL(request.url);
+    const templateId = searchParams.get("id") as string;
+    const variableId = searchParams.get("variableId") as string;
+
     const body = await request.json();
     const { key, name, type, defaultValue, description, required } = body;
     
@@ -108,11 +116,13 @@ export async function PUT(
 // DELETE /api/templates/:id/variables/:variableId - Delete a variable
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: RouteParams }
+  // { params }: { params: RouteParams }
 ) {
   try {
-    const { id: templateId, variableId } = params;
-    
+    const { searchParams } = new URL(request.url);
+    const templateId = searchParams.get("id") as string;
+    const variableId = searchParams.get("variableId") as string;
+
     // Check if variable exists
     const variable = await prisma.templateVariable.findFirst({
       where: {

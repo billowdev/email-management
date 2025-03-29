@@ -5,11 +5,12 @@ import prisma from '@/lib/prisma';
 // GET /api/templates/:id/variables - Get all variables for a template
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  // { params }: { params: { id: string } }
 ) {
   try {
-    const templateId = params.id;
-    
+    const { searchParams } = new URL(request.url);
+    const templateId = searchParams.get("id") as string;
+  
     const variables = await prisma.templateVariable.findMany({
       where: { emailTemplateId: templateId },
       orderBy: { key: 'asc' },
@@ -28,10 +29,12 @@ export async function GET(
 // POST /api/templates/:id/variables - Add a new variable to a template
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  // { params }: { params: { id: string } }
 ) {
   try {
-    const templateId = params.id;
+    const { searchParams } = new URL(request.url);
+    const templateId = searchParams.get("id") as string;
+  
     const body = await request.json();
     const { key, name, type, defaultValue, description, required } = body;
     
