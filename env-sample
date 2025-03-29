@@ -1,0 +1,8 @@
+# PostgreSQL connection string example
+# DATABASE_URL="postgresql://username:password@localhost:5432/mydb?schema=public"
+
+# MySQL connection string example
+# DATABASE_URL="mysql://username:password@localhost:3306/mydb"
+
+# SQLite connection string example
+# DATABASE_URL="file:./dev.db"
