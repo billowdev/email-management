@@ -34,7 +34,7 @@ A comprehensive system for creating, editing, and managing dynamic email templat
 
 1. Clone the repository:
    ```bash
-   git clone https://your-repository-url.git
+   git clone https://github.com/billowdev/email-management
    cd email-template-management
    ```
 
