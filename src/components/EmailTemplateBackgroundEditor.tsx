@@ -13,6 +13,7 @@ import {
 } from '@ant-design/icons';
 import { BackgroundSettings, DEFAULT_BACKGROUND_SETTINGS } from '@/types/email-templates';
 import { getTemplateBackground, saveTemplateBackground } from '@/services/emailBackgroundService';
+import LoaderComponent from './LoaderComponent';
 
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
@@ -291,14 +292,15 @@ const EmailTemplateBackgroundEditor: React.FC<EmailTemplateBackgroundEditorProps
   };
 
   if (loading) {
-    return (
-      <Card className="shadow-lg rounded-lg border-0 mb-6">
-        <div className="flex justify-center items-center p-10">
-          <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
-          <span className="ml-2">Loading background settings...</span>
-        </div>
-      </Card>
-    );
+    // return (
+    //   <Card className="shadow-lg rounded-lg border-0 mb-6">
+    //     <div className="flex justify-center items-center p-10">
+    //       <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+    //       <span className="ml-2">Loading background settings...</span>
+    //     </div>
+    //   </Card>
+    // );
+    return <LoaderComponent />;
   }
 
   return (

@@ -49,6 +49,7 @@ import {
   exportTemplateWithData, 
   exportVariableSchema 
 } from '@/services/exportService';
+import LoaderComponent from './LoaderComponent'
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -380,12 +381,13 @@ const handleUpdateVariable = async (variableId: string, updates: Partial<Templat
   const canDeleteTemplate = selectedTemplate && !selectedTemplate.isSystem;
   
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
-        <span className="ml-2">Loading templates...</span>
-      </div>
-    );
+    // return (
+    //   <div className="flex justify-center items-center h-screen">
+    //     <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+    //     <span className="ml-2">Loading templates...</span>
+    //   </div>
+    // );
+    return <LoaderComponent />;
   }
   
   return (
@@ -393,10 +395,9 @@ const handleUpdateVariable = async (variableId: string, updates: Partial<Templat
       <Content className="container mx-auto p-4 md:p-6">
         <Header className="bg-white p-6 rounded-lg shadow-sm mb-6">
           <div className="flex justify-between items-center">
-            <div>
+            {/* <div>
                 <Title level={3} className="mb-0" style={{ color: 'white' }}>Email Template Editor - Rich text using Tiptap</Title>
-              <Text type="secondary">Create and manage email templates</Text>
-            </div>
+            </div> */}
             <Space>
               {selectedTemplate && (
                 <>
