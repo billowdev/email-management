@@ -64,3 +64,23 @@ export interface EmailTemplate {
 	totalAmount: '149.99',
 	deliveryAddress: '999 Wisit, Mueng, Buengkan 38000'
   };
+
+
+  export interface BackgroundSettings {
+	bodyBgColor: string;
+	containerBgColor: string;
+	headerBgColor: string;
+	contentBgColor: string;
+	footerBgColor: string;
+	maxWidth: string;
+  }
+  
+  // You can place this at the end of your existing email-templates.ts file
+  export const DEFAULT_BACKGROUND_SETTINGS: BackgroundSettings = {
+	bodyBgColor: '#D9D9D9',
+	containerBgColor: '#FFFFFF',
+	headerBgColor: '#33A8DF',
+	contentBgColor: '#FFFFFF',
+	footerBgColor: '#33A8DF',
+	maxWidth: '650px'
+  };

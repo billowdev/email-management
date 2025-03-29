@@ -25,6 +25,7 @@ model EmailTemplate {
   previewData     PreviewData[]
   templateFolder  TemplateFolder?   @relation(fields: [foldererId], references: [id])
   foldererId      String?
+  background      EmailTemplateBackground?
 }
 
 // Template variables
@@ -128,4 +129,21 @@ enum EmailStatus {
   FAILED
   DELIVERED
   OPENED
+}
+
+model EmailTemplateBackground {
+  id              String          @id @default(cuid())
+  bodyBgColor     String          @default("#D9D9D9")
+  containerBgColor String         @default("#FFFFFF")
+  headerBgColor   String          @default("#33A8DF")
+  contentBgColor  String          @default("#FFFFFF")
+  footerBgColor   String          @default("#33A8DF")
+  maxWidth        String          @default("650px")
+  
+  // Relation to the email template
+  emailTemplate   EmailTemplate   @relation(fields: [emailTemplateId], references: [id], onDelete: Cascade)
+  emailTemplateId String          @unique
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }

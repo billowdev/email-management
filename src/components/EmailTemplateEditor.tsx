@@ -27,10 +27,12 @@ import {
   OrderedListOutlined,
   UnorderedListOutlined,
   PlusOutlined,
-  EditOutlined
+  EditOutlined,
+  BgColorsOutlined
 } from '@ant-design/icons'
 import VariableTabs from './VariableTabsComponent'
 import AddVariableComponent from './AddVariableComponent'
+import EmailTemplateBackgroundEditor from './EmailTemplateBackgroundEditor'
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -89,6 +91,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
   const [editingVariable, setEditingVariable] = useState<string>('')
   const [newVariableName, setNewVariableName] = useState<string>('')
   const [form] = Form.useForm();
+  const [activeTabKey, setActiveTabKey] = useState<string>('content');
 
   const editor = useEditor({
     extensions: [
@@ -246,12 +249,17 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     return previewHTML;
   }, [htmlOutput, localPreviewData])
 
-  // Export the email template HTML
+  // Export the template HTML with backgrounds and structure
   const exportTemplate = useCallback(() => {
-    const templateHTML = editor?.getHTML() || '';
+    // Get current content
+    const templateContent = editor?.getHTML() || '';
     
-    // Create a sanitized version for email clients
-    const emailSafeHTML = `
+    // Create a DOM parser for proper HTML structure
+    const parser = new DOMParser();
+    
+    // First check if we have a properly structured email template
+    // by wrapping the current content in a basic structure
+    let exportDoc = parser.parseFromString(`
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -263,17 +271,46 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     .variable { color: #2563eb; font-weight: bold; }
   </style>
 </head>
-<body>
-  <table width="100%" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td style="padding: 20px;">
-        ${templateHTML}
-      </td>
-    </tr>
-  </table>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #D9D9D9;">
+  <div style="width: 100%; margin: 0 auto; background-color: #D9D9D9;">
+    <div style="max-width: 650px; margin: 0 auto; background-color: #FFFFFF;">
+      <div style="background-color: #33A8DF; padding: 24px 10px; text-align: center;">
+        <div style="color: #FFFFFF; font-size: 24px; font-weight: bold; line-height: 150%;">Email Header</div>
+      </div>
+      <div style="padding: 40px 20px; background-color: #FFFFFF;">
+        ${templateContent}
+      </div>
+      <div style="background-color: #33A8DF; padding: 20px 10px; text-align: center;">
+        <div style="color: #FFFFFF; font-size: 16px; line-height: 150%;">© 2025 Company Name. All rights reserved.</div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
-    `;
+    `, 'text/html');
+
+    // Check if the current htmlOutput already has our structure
+    // If so, use that instead of the default structure
+    if (htmlOutput.includes('width: 100%; margin: 0 auto;')) {
+      // The current HTML already has structure, use it entirely
+      exportDoc = parser.parseFromString(htmlOutput, 'text/html');
+    }
+    
+    // Replace variables with their preview values for export
+    if (localPreviewData && Object.keys(localPreviewData).length > 0) {
+      const bodyHTML = exportDoc.body.innerHTML;
+      let updatedHTML = bodyHTML;
+      
+      Object.entries(localPreviewData).forEach(([key, value]) => {
+        const regex = new RegExp(`{{\\s*\\.\\s*${key}\\s*}}`, 'g');
+        updatedHTML = updatedHTML.replace(regex, String(value || ''));
+      });
+      
+      exportDoc.body.innerHTML = updatedHTML;
+    }
+    
+    // Get the complete HTML
+    const emailSafeHTML = exportDoc.documentElement.outerHTML;
     
     // Download as HTML file
     const blob = new Blob([emailSafeHTML], { type: 'text/html' });
@@ -283,7 +320,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     a.download = `email-template-${templateId}.html`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [editor, templateId])
+  }, [editor, templateId, htmlOutput, localPreviewData])
 
   // Format a variable key to follow conventions
   const formatVariableKey = (input: string) => {
@@ -338,232 +375,294 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     }
   }, [editor]);
 
+  // Define Editor Toolbar
+  const EditorToolbar = () => (
+    <div className="bg-white border-b mb-4 pb-4">
+      <Space direction="horizontal" className="flex flex-wrap gap-2">
+        <Space>
+          <Tooltip title="Bold">
+            <Button 
+              type={editor?.isActive('bold') ? 'primary' : 'default'}
+              icon={<BoldOutlined />} 
+              onClick={() => editor?.chain().focus().toggleBold().run()}
+              disabled={previewMode}
+            />
+          </Tooltip>
+          <Tooltip title="Italic">
+            <Button 
+              type={editor?.isActive('italic') ? 'primary' : 'default'}
+              icon={<ItalicOutlined />} 
+              onClick={() => editor?.chain().focus().toggleItalic().run()}
+              disabled={previewMode}
+            />
+          </Tooltip>
+          <Tooltip title="Heading">
+            <Button 
+              type={editor?.isActive('heading', { level: 2 }) ? 'primary' : 'default'}
+              onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+              disabled={previewMode}
+            >
+              H2
+            </Button>
+          </Tooltip>
+        </Space>
+        
+        <Divider type="vertical" className="h-8" />
+        
+        <Space>
+          <Tooltip title="Align Left">
+            <Button 
+              type={editor?.isActive({ textAlign: 'left' }) ? 'primary' : 'default'}
+              icon={<AlignLeftOutlined />} 
+              onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+              disabled={previewMode}
+            />
+          </Tooltip>
+          <Tooltip title="Align Center">
+            <Button 
+              type={editor?.isActive({ textAlign: 'center' }) ? 'primary' : 'default'}
+              icon={<AlignCenterOutlined />} 
+              onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+              disabled={previewMode}
+            />
+          </Tooltip>
+          <Tooltip title="Align Right">
+            <Button 
+              type={editor?.isActive({ textAlign: 'right' }) ? 'primary' : 'default'}
+              icon={<AlignRightOutlined />} 
+              onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+              disabled={previewMode}
+            />
+          </Tooltip>
+        </Space>
+        
+        <Divider type="vertical" className="h-8" />
+        
+        <Space>
+          <Tooltip title="Ordered List">
+            <Button 
+              type={editor?.isActive('orderedList') ? 'primary' : 'default'}
+              icon={<OrderedListOutlined />} 
+              onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+              disabled={previewMode}
+            />
+          </Tooltip>
+          <Tooltip title="Bullet List">
+            <Button 
+              type={editor?.isActive('bulletList') ? 'primary' : 'default'}
+              icon={<UnorderedListOutlined />} 
+              onClick={() => editor?.chain().focus().toggleBulletList().run()}
+              disabled={previewMode}
+            />
+          </Tooltip>
+        </Space>
+        
+        <Divider type="vertical" className="h-8" />
+        
+        <Space>
+          <Select
+            placeholder="Text Color"
+            style={{ width: 120 }}
+            value={editor?.getAttributes('textStyle').color || '#000000'}
+            onChange={(value: string) => {
+              editor?.chain().focus().setColor(value).run();
+            }}
+            popupMatchSelectWidth={false}
+            disabled={previewMode}
+          >
+            <Option value="#000000">
+              <Space>
+                <span className="inline-block w-4 h-4 bg-black rounded-sm"></span>
+                Black
+              </Space>
+            </Option>
+            <Option value="#2563eb">
+              <Space>
+                <span className="inline-block w-4 h-4 bg-blue-600 rounded-sm"></span>
+                Blue
+              </Space>
+            </Option>
+            <Option value="#059669">
+              <Space>
+                <span className="inline-block w-4 h-4 bg-green-600 rounded-sm"></span>
+                Green
+              </Space>
+            </Option>
+            <Option value="#dc2626">
+              <Space>
+                <span className="inline-block w-4 h-4 bg-red-600 rounded-sm"></span>
+                Red
+              </Space>
+            </Option>
+            <Option value="#7c3aed">
+              <Space>
+                <span className="inline-block w-4 h-4 bg-purple-600 rounded-sm"></span>
+                Purple
+              </Space>
+            </Option>
+          </Select>
+          
+          <Tooltip title="Add Link">
+            <Button 
+              type={editor?.isActive('link') ? 'primary' : 'default'}
+              icon={<LinkOutlined />} 
+              onClick={() => {
+                const url = window.prompt('Enter the URL:');
+                if (url) {
+                  editor?.chain().focus().setLink({ href: url }).run();
+                }
+              }}
+              disabled={previewMode}
+            />
+          </Tooltip>
+        </Space>
+        
+        <div className="ml-auto">
+          <Space>
+            <Tooltip title={previewMode ? "Edit Mode" : "Preview Mode"}>
+              <Button 
+                type={previewMode ? 'primary' : 'default'}
+                icon={previewMode ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                onClick={() => setPreviewMode(!previewMode)}
+              >
+                {previewMode ? 'Edit' : 'Preview'}
+              </Button>
+            </Tooltip>
+            <Button 
+              type="primary" 
+              icon={<DownloadOutlined />}
+              onClick={exportTemplate}
+            >
+              Export
+            </Button>
+          </Space>
+        </div>
+      </Space>
+    </div>
+  );
+
+  // Define tabs for the editor
+  const tabItems: TabsProps['items'] = [
+    {
+      key: 'content',
+      label: (
+        <span>
+          <EditOutlined /> Content
+        </span>
+      ),
+      children: (
+        <>
+          {/* Editor Toolbar */}
+          <EditorToolbar />
+          
+          {/* Main Editor Area */}
+          <div className="flex flex-col lg:flex-row">
+            <div className="w-full lg:w-3/4 mb-4 lg:mb-0 lg:pr-4">
+              <Card 
+                className="h-full shadow-sm" 
+                styles={{ body: { padding: 0, height: '100%' } }}
+              >
+                {previewMode ? (
+                  <div 
+                    className="p-6 min-h-[400px] prose max-w-none h-full overflow-auto"
+                    dangerouslySetInnerHTML={{ __html: getPreviewHTML() }}
+                  />
+                ) : (
+                  <EditorContent editor={editor} className={editorClassNames} />
+                )}
+              </Card>
+            </div>
+            
+            <div className="w-full lg:w-1/4">
+              <Card className="h-full shadow-sm">
+                {/* Variable Management Section */}
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <Text strong>Email Variables</Text>
+                    <AddVariableComponent 
+                      existingVariables={variables}
+                      onAddVariable={handleAddVariable}
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2 max-h-[150px] overflow-auto border p-2 rounded-md">
+                    {variables.map((variable) => (
+                      <Button
+                        key={variable}
+                        type="text"
+                        size="small"
+                        className="flex items-center bg-blue-50 text-blue-700 rounded hover:bg-blue-100 mb-1"
+                        onClick={() => insertVariable(variable)}
+                        disabled={previewMode}
+                      >
+                        <span className="mr-1">{`{{.${variable}}}`}</span>
+                        <Tooltip title="Edit variable name">
+                          <EditOutlined
+                            className="text-xs cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              showEditModal(variable);
+                            }}
+                          />
+                        </Tooltip>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                
+                <Divider />
+                
+                <VariableTabs 
+                  availableVariables={variables}
+                  insertVariable={insertVariable}
+                  previewMode={previewMode}
+                  localPreviewData={localPreviewData}
+                  setLocalPreviewData={setLocalPreviewData}
+                />
+              </Card>
+            </div>
+          </div>
+        </>
+      ),
+    },
+    {
+      key: 'preview',
+      label: (
+        <span>
+          <EyeOutlined /> Preview & Layout
+        </span>
+      ),
+      children: (
+        <>
+          <EmailTemplateBackgroundEditor
+            currentHtml={htmlOutput || initialContent}
+            templateId={templateId}
+            onHtmlChange={(html) => {
+              if (editor) {
+                editor.commands.setContent(html);
+              }
+              if (onHtmlChange) {
+                onHtmlChange(html);
+              }
+              setHtmlOutput(html);
+            }}
+          />
+        </>
+      ),
+    },
+  ];
+
   if (!isMounted) {
     return null;
   }
 
   return (
     <Card className="shadow-lg rounded-lg border-0">
-      {/* Editor Header with Toolbar */}
-      <div className="bg-white border-b mb-4 pb-4">
-        <Space direction="horizontal" className="flex flex-wrap gap-2">
-          <Space>
-            <Tooltip title="Bold">
-              <Button 
-                type={editor?.isActive('bold') ? 'primary' : 'default'}
-                icon={<BoldOutlined />} 
-                onClick={() => editor?.chain().focus().toggleBold().run()}
-              />
-            </Tooltip>
-            <Tooltip title="Italic">
-              <Button 
-                type={editor?.isActive('italic') ? 'primary' : 'default'}
-                icon={<ItalicOutlined />} 
-                onClick={() => editor?.chain().focus().toggleItalic().run()}
-              />
-            </Tooltip>
-            <Tooltip title="Heading">
-              <Button 
-                type={editor?.isActive('heading', { level: 2 }) ? 'primary' : 'default'}
-                onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-              >
-                H2
-              </Button>
-            </Tooltip>
-          </Space>
-          
-          <Divider type="vertical" className="h-8" />
-          
-          <Space>
-            <Tooltip title="Align Left">
-              <Button 
-                type={editor?.isActive({ textAlign: 'left' }) ? 'primary' : 'default'}
-                icon={<AlignLeftOutlined />} 
-                onClick={() => editor?.chain().focus().setTextAlign('left').run()}
-              />
-            </Tooltip>
-            <Tooltip title="Align Center">
-              <Button 
-                type={editor?.isActive({ textAlign: 'center' }) ? 'primary' : 'default'}
-                icon={<AlignCenterOutlined />} 
-                onClick={() => editor?.chain().focus().setTextAlign('center').run()}
-              />
-            </Tooltip>
-            <Tooltip title="Align Right">
-              <Button 
-                type={editor?.isActive({ textAlign: 'right' }) ? 'primary' : 'default'}
-                icon={<AlignRightOutlined />} 
-                onClick={() => editor?.chain().focus().setTextAlign('right').run()}
-              />
-            </Tooltip>
-          </Space>
-          
-          <Divider type="vertical" className="h-8" />
-          
-          <Space>
-            <Tooltip title="Ordered List">
-              <Button 
-                type={editor?.isActive('orderedList') ? 'primary' : 'default'}
-                icon={<OrderedListOutlined />} 
-                onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-              />
-            </Tooltip>
-            <Tooltip title="Bullet List">
-              <Button 
-                type={editor?.isActive('bulletList') ? 'primary' : 'default'}
-                icon={<UnorderedListOutlined />} 
-                onClick={() => editor?.chain().focus().toggleBulletList().run()}
-              />
-            </Tooltip>
-          </Space>
-          
-          <Divider type="vertical" className="h-8" />
-          
-          <Space>
-            <Select
-              placeholder="Text Color"
-              style={{ width: 120 }}
-              value={editor?.getAttributes('textStyle').color || '#000000'}
-              onChange={(value: string) => {
-                editor?.chain().focus().setColor(value).run();
-              }}
-              popupMatchSelectWidth={false}
-            >
-              <Option value="#000000">
-                <Space>
-                  <span className="inline-block w-4 h-4 bg-black rounded-sm"></span>
-                  Black
-                </Space>
-              </Option>
-              <Option value="#2563eb">
-                <Space>
-                  <span className="inline-block w-4 h-4 bg-blue-600 rounded-sm"></span>
-                  Blue
-                </Space>
-              </Option>
-              <Option value="#059669">
-                <Space>
-                  <span className="inline-block w-4 h-4 bg-green-600 rounded-sm"></span>
-                  Green
-                </Space>
-              </Option>
-              <Option value="#dc2626">
-                <Space>
-                  <span className="inline-block w-4 h-4 bg-red-600 rounded-sm"></span>
-                  Red
-                </Space>
-              </Option>
-              <Option value="#7c3aed">
-                <Space>
-                  <span className="inline-block w-4 h-4 bg-purple-600 rounded-sm"></span>
-                  Purple
-                </Space>
-              </Option>
-            </Select>
-            
-            <Tooltip title="Add Link">
-              <Button 
-                type={editor?.isActive('link') ? 'primary' : 'default'}
-                icon={<LinkOutlined />} 
-                onClick={() => {
-                  const url = window.prompt('Enter the URL:');
-                  if (url) {
-                    editor?.chain().focus().setLink({ href: url }).run();
-                  }
-                }}
-              />
-            </Tooltip>
-          </Space>
-          
-          <div className="ml-auto">
-            <Space>
-              <Tooltip title={previewMode ? "Edit Mode" : "Preview Mode"}>
-                <Button 
-                  type={previewMode ? 'primary' : 'default'}
-                  icon={previewMode ? <EyeInvisibleOutlined /> : <EyeOutlined />}
-                  onClick={() => setPreviewMode(!previewMode)}
-                >
-                  {previewMode ? 'Edit' : 'Preview'}
-                </Button>
-              </Tooltip>
-              <Button 
-                type="primary" 
-                icon={<DownloadOutlined />}
-                onClick={exportTemplate}
-              >
-                Export
-              </Button>
-            </Space>
-          </div>
-        </Space>
-      </div>
-      
-      {/* Main Editor Area */}
-      <div className="flex flex-col lg:flex-row">
-        <div className="w-full lg:w-3/4 mb-4 lg:mb-0 lg:pr-4">
-          <Card 
-            className="h-full shadow-sm" 
-            styles={{ body: { padding: 0, height: '100%' } }}
-          >
-            {previewMode ? (
-              <div 
-                className="p-6 min-h-[400px] prose max-w-none h-full overflow-auto"
-                dangerouslySetInnerHTML={{ __html: getPreviewHTML() }}
-              />
-            ) : (
-              <EditorContent editor={editor} className={editorClassNames} />
-            )}
-          </Card>
-        </div>
-        
-        <div className="w-full lg:w-1/4">
-          <Card className="h-full shadow-sm">
-            {/* Variable Management Section */}
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <Text strong>Email Variables</Text>
-                <AddVariableComponent 
-                  existingVariables={variables}
-                  onAddVariable={handleAddVariable}
-                />
-              </div>
-              <div className="flex flex-wrap gap-2 max-h-[150px] overflow-auto border p-2 rounded-md">
-                {variables.map((variable) => (
-                  <Button
-                    key={variable}
-                    type="text"
-                    size="small"
-                    className="flex items-center bg-blue-50 text-blue-700 rounded hover:bg-blue-100 mb-1"
-                    onClick={() => insertVariable(variable)}
-                    disabled={previewMode}
-                  >
-                    <span className="mr-1">{`{{.${variable}}}`}</span>
-                    <Tooltip title="Edit variable name">
-                      <EditOutlined
-                        className="text-xs cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          showEditModal(variable);
-                        }}
-                      />
-                    </Tooltip>
-                  </Button>
-                ))}
-              </div>
-            </div>
-            
-            <Divider />
-            
-            <VariableTabs 
-              availableVariables={variables}
-              insertVariable={insertVariable}
-              previewMode={previewMode}
-              localPreviewData={localPreviewData}
-              setLocalPreviewData={setLocalPreviewData}
-            />
-          </Card>
-        </div>
-      </div>
+      <Tabs 
+        activeKey={activeTabKey} 
+        onChange={setActiveTabKey}
+        items={tabItems}
+        className="email-template-editor-tabs"
+      />
       
       {/* Edit Variable Modal */}
       <Modal
