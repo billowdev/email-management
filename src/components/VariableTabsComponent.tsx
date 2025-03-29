@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Tabs, Button, Badge, Input, Typography, Space, Tooltip } from 'antd';
+// src/components/VariableTabsComponent.tsx
+import React, { useState, useEffect } from 'react';
+import { Tabs, Button, Badge, Input, Typography, Space, Tooltip, message, Spin } from 'antd';
 import type { TabsProps } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { updatePreviewData } from '@/services/emailTemplateService';
+import { EditOutlined, DeleteOutlined, LoadingOutlined } from '@ant-design/icons';
+import { updatePreviewData, deleteVariable, updateVariable } from '@/services/emailTemplateService';
 
 const { Text } = Typography;
 
@@ -29,6 +30,7 @@ const VariableTabs: React.FC<VariableTabsProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<string>("variables");
   const [saving, setSaving] = useState<boolean>(false);
+  const [deleteLoading, setDeleteLoading] = useState<Record<string, boolean>>({});
   
   // Handle updating preview data in the database
   const handleUpdatePreviewData = async (key: string, value: string) => {
@@ -49,7 +51,57 @@ const VariableTabs: React.FC<VariableTabsProps> = ({
       } catch (error) {
         console.error('Error saving preview data:', error);
         setSaving(false);
+        message.error('Failed to save preview data');
       }
+    }
+  };
+  
+  // Handle variable deletion with proper database update
+  const handleDeleteVariable = async (variable: string) => {
+    if (!templateId) {
+      if (onDeleteVariable) {
+        onDeleteVariable(variable);
+      }
+      return;
+    }
+    
+    try {
+      // Set loading state for this specific variable
+      setDeleteLoading(prev => ({ ...prev, [variable]: true }));
+      
+      // First, we need to get the variable ID from the key
+      // This would require adding a function to get variables by template ID
+      const variables = await getVariablesByTemplateId(templateId);
+      const variableToDelete = variables.find((v: { key: string; id: string }) => v.key === variable);
+      
+      if (!variableToDelete) {
+        message.error(`Variable ${variable} not found`);
+        setDeleteLoading(prev => ({ ...prev, [variable]: false }));
+        return;
+      }
+      
+      // Delete from database
+      await deleteVariable(templateId, variableToDelete.id);
+      
+      // Update local state via the callback
+      if (onDeleteVariable) {
+        onDeleteVariable(variable);
+      }
+      
+      // Remove from preview data
+      const updatedPreviewData = { ...localPreviewData };
+      delete updatedPreviewData[variable];
+      setLocalPreviewData(updatedPreviewData);
+      
+      // Update preview data in database
+      await updatePreviewData(templateId, updatedPreviewData);
+      
+      message.success(`Variable {{.${variable}}} deleted successfully`);
+    } catch (error) {
+      console.error('Error deleting variable:', error);
+      message.error('Failed to delete variable');
+    } finally {
+      setDeleteLoading(prev => ({ ...prev, [variable]: false }));
     }
   };
   
@@ -92,10 +144,11 @@ const VariableTabs: React.FC<VariableTabsProps> = ({
                   {onDeleteVariable && (
                     <Tooltip title="Remove variable">
                       <Button 
-                        icon={<DeleteOutlined />} 
+                        icon={deleteLoading[variable] ? <LoadingOutlined /> : <DeleteOutlined />} 
                         size="small" 
                         danger
-                        onClick={() => onDeleteVariable(variable)}
+                        loading={deleteLoading[variable]}
+                        onClick={() => handleDeleteVariable(variable)}
                       />
                     </Tooltip>
                   )}
@@ -146,5 +199,15 @@ const VariableTabs: React.FC<VariableTabsProps> = ({
     />
   );
 };
+
+// This function needs to be implemented in the component
+// or imported from your service
+async function getVariablesByTemplateId(templateId: string) {
+  const response = await fetch(`/api/templates/${templateId}/variables`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch variables');
+  }
+  return response.json();
+}
 
 export default VariableTabs;

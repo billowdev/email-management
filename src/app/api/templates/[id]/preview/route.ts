@@ -5,12 +5,13 @@ import prisma from '@/lib/prisma';
 // GET /api/templates/:id/preview - Get preview data for a template
 export async function GET(
   request: NextRequest,
-  // { params }: { params: { id: string } }
+  context: any
 ) {
   try {
-    const { searchParams } = new URL(request.url);
-    const templateId = searchParams.get("id") as string;
-    
+    // const { searchParams } = new URL(request.url);
+    // const templateId = searchParams.get("id") as string;
+    const { id: templateId } = await context.params;
+
     const previewData = await prisma.previewData.findFirst({
       where: { emailTemplateId: templateId },
       orderBy: { updatedAt: 'desc' },
@@ -36,12 +37,17 @@ export async function GET(
 // PUT /api/templates/:id/preview - Update preview data for a template
 export async function PUT(
   request: NextRequest,
-  // { params }: { params: { id: string } }
+  context: any
 ) {
   try {
-    const { searchParams } = new URL(request.url);
-    const templateId = searchParams.get("id") as string;
+    const { id: templateId } = await context.params;
 
+    if (!templateId) {
+      return NextResponse.json(
+        { error: 'Template ID is required' },
+        { status: 400 }
+      );
+    }
     const body = await request.json();
     const { data, name } = body;
     

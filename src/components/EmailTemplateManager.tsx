@@ -10,7 +10,10 @@ import {
   templateToSimpleFormat,
   getPreviewDataObject,
   EmailTemplateWithRelations,
-  addVariable
+  addVariable,
+  deleteVariable,
+  TemplateVariable,
+  updateVariable
 } from '@/services/emailTemplateService'
 import EmailTemplateEditor from '@/components/EmailTemplateEditor'
 import AddVariableComponent from '@/components/AddVariableComponent'
@@ -249,48 +252,118 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
   };
   
   // Handle adding a new variable
-  const handleAddVariable = async (variableName: string) => {
-    if (!selectedTemplate) return;
-    
-    try {
-      // First check if variable already exists
-      if (selectedTemplate.variables.some(v => v.key === variableName)) {
-        message.error(`Variable ${variableName} already exists`);
-        return;
-      }
-      
-      // Add the variable through the API
-      const newVariable = await addVariable(selectedTemplate.id, {
-        key: variableName,
-        name: variableName.charAt(0).toUpperCase() + variableName.slice(1).replace(/([A-Z])/g, ' $1').trim(),
-        type: 'TEXT',
-        required: false
-      });
-      
-      // Update local state
-      setSelectedTemplate(prev => {
-        if (!prev) return prev;
-        
-        return {
-          ...prev,
-          variables: [...prev.variables, newVariable]
-        };
-      });
-      
-      // Update preview data with an empty value for the new variable
-      const updatedPreviewData = { ...previewData, [variableName]: '' };
-      setPreviewData(updatedPreviewData);
-      
-      // Update preview data in the database
-      await updatePreviewData(selectedTemplate.id, updatedPreviewData);
-      
-      message.success(`Variable {{.${variableName}}} added successfully`);
-    } catch (error) {
-      console.error('Error adding variable:', error);
-      message.error('Failed to add variable');
-    }
-  };
+const handleAddVariable = async (variableName: string) => {
+  if (!selectedTemplate) return;
   
+  try {
+    // First check if variable already exists
+    if (selectedTemplate.variables.some(v => v.key === variableName)) {
+      message.error(`Variable ${variableName} already exists`);
+      return;
+    }
+    
+    // Format the display name from the key
+    const displayName = variableName.charAt(0).toUpperCase() + 
+      variableName.slice(1).replace(/([A-Z])/g, ' $1').trim();
+    
+    // Add the variable through the API
+    const newVariable = await addVariable(selectedTemplate.id, {
+      key: variableName,
+      name: displayName,
+      type: 'TEXT',
+      required: false
+    });
+    
+    // Update local state
+    setSelectedTemplate(prev => {
+      if (!prev) return prev;
+      
+      return {
+        ...prev,
+        variables: [...prev.variables, newVariable]
+      };
+    });
+    
+    // Update preview data with an empty value for the new variable
+    const updatedPreviewData = { ...previewData, [variableName]: '' };
+    setPreviewData(updatedPreviewData);
+    
+    // Update preview data in the database
+    await updatePreviewData(selectedTemplate.id, updatedPreviewData);
+    
+    message.success(`Variable {{.${variableName}}} added successfully`);
+  } catch (error) {
+    console.error('Error adding variable:', error);
+    message.error('Failed to add variable');
+  }
+};
+  
+// Handle variable deletion
+const handleDeleteVariable = async (variableName: string) => {
+  if (!selectedTemplate) return;
+  
+  try {
+    // Find the variable to delete
+    const variableToDelete = selectedTemplate.variables.find(v => v.key === variableName);
+    
+    if (!variableToDelete) {
+      message.error(`Variable ${variableName} not found`);
+      return;
+    }
+    
+    // Delete the variable from the database
+    await deleteVariable(selectedTemplate.id, variableToDelete.id);
+    
+    // Update local state
+    setSelectedTemplate(prev => {
+      if (!prev) return prev;
+      
+      return {
+        ...prev,
+        variables: prev.variables.filter(v => v.key !== variableName)
+      };
+    });
+    
+    // Update preview data by removing the variable
+    const updatedPreviewData = { ...previewData };
+    delete updatedPreviewData[variableName];
+    setPreviewData(updatedPreviewData);
+    
+    // Update preview data in the database
+    await updatePreviewData(selectedTemplate.id, updatedPreviewData);
+    
+    message.success(`Variable ${variableName} deleted successfully`);
+  } catch (error) {
+    console.error('Error deleting variable:', error);
+    message.error('Failed to delete variable');
+  }
+};
+
+// Handle variable update
+const handleUpdateVariable = async (variableId: string, updates: Partial<TemplateVariable>) => {
+  if (!selectedTemplate) return;
+  
+  try {
+    // Update the variable in the database
+    const updatedVariable = await updateVariable(selectedTemplate.id, variableId, updates);
+    
+    // Update local state
+    setSelectedTemplate(prev => {
+      if (!prev) return prev;
+      
+      return {
+        ...prev,
+        variables: prev.variables.map(v => v.id === variableId ? updatedVariable : v)
+      };
+    });
+    
+    message.success('Variable updated successfully');
+  } catch (error) {
+    console.error('Error updating variable:', error);
+    message.error('Failed to update variable');
+  }
+};
+
   // Get variables for the selected template
   const getVariableKeys = () => {
     if (!selectedTemplate) return [];
@@ -428,21 +501,24 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
             <AddVariableComponent 
               existingVariables={getVariableKeys()}
               onAddVariable={handleAddVariable}
+              templateId={selectedTemplate.id}
             />
             
             <Divider />
             
             {/* Email Template Editor */}
             <EmailTemplateEditor 
-              initialContent={currentHtml}
-              templateId={selectedTemplate.id}
-              availableVariables={getVariableKeys()}
-              onHtmlChange={handleHtmlChange}
-              previewData={previewData}
-              onVariablesChange={(variables) => {
-                // This is handled by the individual variable components now
-              }}
-            />
+            initialContent={currentHtml}
+            templateId={selectedTemplate.id}
+            availableVariables={getVariableKeys()}
+            onHtmlChange={handleHtmlChange}
+            previewData={previewData}
+            // onVariablesChange={handleUpdatePreviewData}
+            // onAddVariable={handleAddVariable}
+            // onDeleteVariable={handleDeleteVariable}
+          />
+
+         
           </Card>
         ) : (
           <Alert

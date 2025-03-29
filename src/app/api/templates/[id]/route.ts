@@ -5,11 +5,13 @@ import prisma from '@/lib/prisma';
 // GET /api/templates/:id - Get template by ID
 export async function GET(
   request: NextRequest,
+  context:any,
   // { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { searchParams } = new URL(request.url);
-    const templateId = searchParams.get("id") as string;
+    // const { searchParams } = new URL(request.url);
+ 
+    const { id: templateId } = await context.params;
     
     const template = await prisma.emailTemplate.findUnique({
       where: { id: templateId },
@@ -39,10 +41,14 @@ export async function GET(
 // PUT /api/templates/:id - Update template
 export async function PUT(
   request: NextRequest,
+  context: any
   // context: { params: { id: string } }
 ) {
-  const { searchParams } = new URL(request.url);
-  const templateId = searchParams.get("id") as string;
+  // const { searchParams } = new URL(request.url);
+  // const templateId = searchParams.get("id") as string;
+ 
+  const { id: templateId } = await context.params;
+    
 
   try {
     // const templateId = params.id;
@@ -126,12 +132,18 @@ export async function PUT(
 // DELETE /api/templates/:id - Delete template
 export async function DELETE(
   request: NextRequest,
+  context:any,
   // { params }: { params: { id: string } }
 ) {
   try {
-    const { searchParams } = new URL(request.url);
-    const templateId = searchParams.get("id") as string;
+    // const { searchParams } = new URL(request.url);
+    // const templateId = searchParams.get("id") as string;
+    // const templateId = await context.params.id as string;
 
+     
+    const { id: templateId } = await context.params;
+    
+    
     // Check if template exists
     const template = await prisma.emailTemplate.findUnique({
       where: { id: templateId },

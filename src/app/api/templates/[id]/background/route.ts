@@ -11,8 +11,10 @@ interface RouteParams {
 // GET /api/templates/:id/background - Get background settings for a template
 export async function GET(request: NextRequest, context: any) {
   try {
-    const { searchParams } = new URL(request.url);
-    const templateId = searchParams.get("id") as string;
+    // const { searchParams } = new URL(request.url);
+    // const templateId = searchParams.get("id") as string;
+
+    const { id: templateId } = await context.params;
     // const templateId = params?.id?.toString();
     // Check if template exists
     const template = await prisma.emailTemplate.findUnique({
@@ -53,8 +55,8 @@ export async function PUT(request: NextRequest, context: any) {
   try {
     // const { params } = context;
     // const templateId = await params?.id?.toString();
-    const { searchParams } = new URL(request.url);
-    const templateId = searchParams.get("id") as string;
+    const { id: templateId } = await context.params;
+
 
     const body = await request.json();
     const {

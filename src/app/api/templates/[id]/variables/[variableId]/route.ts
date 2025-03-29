@@ -10,14 +10,20 @@ interface RouteParams {
 // GET /api/templates/:id/variables/:variableId - Get a specific variable
 export async function GET(
   request: NextRequest,
+  context:any,
   // { params }: { params: RouteParams }
 ) {
   try {
     // const { id: templateId, variableId } = params;
     
-    const { searchParams } = new URL(request.url);
-    const templateId = searchParams.get("id") as string;
-    const variableId = searchParams.get("variableId") as string;
+    // const { searchParams } = new URL(request.url);
+    // const templateId = searchParams.get("id") as string;
+    // const variableId = searchParams.get("variableId") as string;
+
+
+    const { id: templateId } = await context.params;
+    const { variableId } = await context.params;
+
 
 
     const variable = await prisma.templateVariable.findFirst({
@@ -47,12 +53,16 @@ export async function GET(
 // PUT /api/templates/:id/variables/:variableId - Update a variable
 export async function PUT(
   request: NextRequest,
+  context: any,
   // { params }: { params: RouteParams }
 ) {
   try {
-    const { searchParams } = new URL(request.url);
-    const templateId = searchParams.get("id") as string;
-    const variableId = searchParams.get("variableId") as string;
+    // const { searchParams } = new URL(request.url);
+    // const templateId = searchParams.get("id") as string;
+    // const variableId = searchParams.get("variableId") as string;
+
+    const { id: templateId } = await context.params;
+    const { variableId } = await context.params;
 
     const body = await request.json();
     const { key, name, type, defaultValue, description, required } = body;
@@ -116,12 +126,16 @@ export async function PUT(
 // DELETE /api/templates/:id/variables/:variableId - Delete a variable
 export async function DELETE(
   request: NextRequest,
+  context:any,
   // { params }: { params: RouteParams }
 ) {
   try {
-    const { searchParams } = new URL(request.url);
-    const templateId = searchParams.get("id") as string;
-    const variableId = searchParams.get("variableId") as string;
+    // const { searchParams } = new URL(request.url);
+    // const templateId = searchParams.get("id") as string;
+    // const variableId = searchParams.get("variableId") as string;
+ 
+    const { id: templateId } = await context.params;
+    const { variableId } = await context.params;
 
     // Check if variable exists
     const variable = await prisma.templateVariable.findFirst({

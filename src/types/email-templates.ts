@@ -1,4 +1,26 @@
 // types/email-templates.ts
+export interface TemplateVariable {
+	id: string;
+	key: string;
+	name: string;
+	type: VariableType;
+	defaultValue?: string | null;
+	description?: string | null;
+	required: boolean;
+	emailTemplateId: string;
+	createdAt?: Date;
+	updatedAt?: Date;
+  }
+
+  export interface VariableInput {
+	key: string;
+	name: string; 
+	type: VariableType;
+	defaultValue?: string | null;
+	description?: string | null;
+	required?: boolean;
+  }
+  
 export interface EmailTemplate {
 	id: string;
 	name: string;

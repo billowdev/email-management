@@ -9,7 +9,15 @@ import Color from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
 import { useState, useEffect, useCallback } from 'react'
 import { Node } from '@tiptap/core'
-import { PreviewData } from '@/types/email-templates'
+import { PreviewData,TemplateVariable  } from '@/types/email-templates'
+import { 
+  getVariablesByTemplateId, 
+  addVariable, 
+  updateVariable, 
+  deleteVariable, 
+  updatePreviewData 
+} from '@/services/emailTemplateService';
+
 // Import Ant Design components
 import { Button, Select, Tooltip, Divider, Input, Card, Typography, Space, Tabs, Modal, Form, message } from 'antd'
 import type { TabsProps } from 'antd'
@@ -72,6 +80,8 @@ interface EmailTemplateEditorProps {
   onHtmlChange?: (html: string) => void;
   previewData?: PreviewData;
   onVariablesChange?: (variables: string[]) => void;
+  // onAddVariable: (variableName: string) => Promise<void>;
+  // onDeleteVariable: (variableName: string) => Promise<void>;
 }
 
 const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
@@ -81,6 +91,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
   onHtmlChange,
   previewData = {},
   onVariablesChange,
+  // onAddVariable,
 }) => {
   const [isMounted, setIsMounted] = useState<boolean>(false)
   const [htmlOutput, setHtmlOutput] = useState<string>('')
@@ -92,6 +103,10 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
   const [newVariableName, setNewVariableName] = useState<string>('')
   const [form] = Form.useForm();
   const [activeTabKey, setActiveTabKey] = useState<string>('content');
+
+  
+  const [variablesLoading, setVariablesLoading] = useState<boolean>(false);
+  const [templateVariables, setTemplateVariables] = useState<TemplateVariable[]>([]);
 
   const editor = useEditor({
     extensions: [
@@ -120,6 +135,30 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
       localStorage.setItem(`email-template-${templateId}`, html);
     },
   })
+
+  // Load template variables from database if templateId is provided
+  useEffect(() => {
+    if (templateId && templateId !== 'default-template') {
+      setVariablesLoading(true);
+      getVariablesByTemplateId(templateId)
+        .then(variables => {
+          setTemplateVariables(variables.map(variable => ({
+            ...variable,
+            type: variable.type.toLowerCase() as TemplateVariable['type'],
+          })));
+          setVariables(variables.map(v => v.key));
+          setVariablesLoading(false);
+        })
+        .catch(error => {
+          console.error('Error loading template variables:', error);
+          setVariablesLoading(false);
+        });
+    } else {
+      // Use the provided availableVariables if no templateId
+      setVariables(availableVariables);
+    }
+  }, [templateId, availableVariables]);
+
 
   // Handle Next.js hydration
   useEffect(() => {
@@ -154,28 +193,63 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
       .run();
   }, [editor])
 
-  // Add a new variable
-  const handleAddVariable = (variableName: string) => {
-    // Check if variable already exists
-    if (variables.includes(variableName)) {
-      return;
-    }
+  // // Add a new variable
+  // const handleAddVariable = (variableName: string) => {
+  //   // Check if variable already exists
+  //   if (variables.includes(variableName)) {
+  //     return;
+  //   }
     
-    // Add the new variable to the list
-    const updatedVariables = [...variables, variableName];
-    setVariables(updatedVariables);
+  //   // Add the new variable to the list
+  //   const updatedVariables = [...variables, variableName];
+  //   setVariables(updatedVariables);
     
-    // Update parent component if needed
-    if (onVariablesChange) {
-      onVariablesChange(updatedVariables);
-    }
+  //   // Update parent component if needed
+  //   if (onVariablesChange) {
+  //     onVariablesChange(updatedVariables);
+  //   }
     
-    // Add to preview data
-    setLocalPreviewData(prev => ({
-      ...prev,
-      [variableName]: ''
-    }));
-  };
+  //   // Add to preview data
+  //   setLocalPreviewData(prev => ({
+  //     ...prev,
+  //     [variableName]: ''
+  //   }));
+  // };
+
+    // Add a new variable
+    const handleAddVariable = async (variableName: string) => {
+      // Check if variable already exists
+      if (variables.includes(variableName)) {
+        return;
+      }
+      
+      // Add the new variable to the list
+      const updatedVariables = [...variables, variableName];
+      setVariables(updatedVariables);
+      
+      // Update parent component if needed
+      if (onVariablesChange) {
+        onVariablesChange(updatedVariables);
+      }
+      
+      // Add to preview data
+      const updatedPreviewData = {
+        ...localPreviewData,
+        [variableName]: ''
+      };
+      
+      setLocalPreviewData(updatedPreviewData);
+      
+      // If templateId is provided, save preview data to database
+      if (templateId && templateId !== 'default-template') {
+        try {
+          await updatePreviewData(templateId, updatedPreviewData);
+        } catch (error) {
+          console.error('Error updating preview data:', error);
+          message.error('Failed to update preview data');
+        }
+      }
+    };
 
   // Show edit modal for a variable
   const showEditModal = (variable: string) => {
@@ -184,34 +258,113 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     setIsEditModalVisible(true);
   };
 
-  // Handle variable rename
-  const handleRenameVariable = () => {
-    if (!newVariableName || newVariableName === editingVariable) {
+ // Handle variable rename in the database
+ const handleRenameVariable = async () => {
+  if (!newVariableName || newVariableName === editingVariable) {
+    setIsEditModalVisible(false);
+    return;
+  }
+  
+  // Check if new name already exists
+  if (variables.includes(newVariableName)) {
+    message.error(`Variable ${newVariableName} already exists`);
+    return;
+  }
+  
+  // Update the HTML content to replace all instances of the old variable with the new one
+  if (editor) {
+    const oldPattern = new RegExp(`{{\.${editingVariable}}}`, 'g');
+    const newReplacement = `{{.${newVariableName}}}`;
+    
+    // Get current HTML and replace variable references
+    const currentHtml = editor.getHTML();
+    const updatedHtml = currentHtml.replace(oldPattern, newReplacement);
+    
+    // Update editor content
+    editor.commands.setContent(updatedHtml);
+  }
+  
+  // If we have a templateId, update the variable in the database
+  if (templateId && templateId !== 'default-template') {
+    try {
+      // Find the variable in templateVariables
+      const variableToUpdate = templateVariables.find(v => v.key === editingVariable);
+      
+      if (variableToUpdate) {
+        await updateVariable(templateId, variableToUpdate.id, {
+          key: newVariableName,
+          name: newVariableName.charAt(0).toUpperCase() + newVariableName.slice(1).replace(/([A-Z])/g, ' $1').trim()
+        });
+        
+        // Update local templateVariables state
+        setTemplateVariables(prev => 
+          prev.map(v => v.key === editingVariable 
+            ? { ...v, key: newVariableName, name: newVariableName.charAt(0).toUpperCase() + newVariableName.slice(1).replace(/([A-Z])/g, ' $1').trim() } 
+            : v
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error updating variable in database:', error);
+      message.error('Failed to update variable in database');
       setIsEditModalVisible(false);
       return;
     }
+  }
+  
+  // Update variables list
+  const updatedVariables = variables.map(v => v === editingVariable ? newVariableName : v);
+  setVariables(updatedVariables);
+  
+  // Update parent component if needed
+  if (onVariablesChange) {
+    onVariablesChange(updatedVariables);
+  }
+  
+  // Update preview data
+  const updatedPreviewData = { ...localPreviewData };
+  if (editingVariable in updatedPreviewData) {
+    updatedPreviewData[newVariableName] = updatedPreviewData[editingVariable];
+    delete updatedPreviewData[editingVariable];
+    setLocalPreviewData(updatedPreviewData);
     
-    // Check if new name already exists
-    if (variables.includes(newVariableName)) {
-      message.error(`Variable ${newVariableName} already exists`);
-      return;
+    // If templateId is provided, save preview data to database
+    if (templateId && templateId !== 'default-template') {
+      try {
+        await updatePreviewData(templateId, updatedPreviewData);
+      } catch (error) {
+        console.error('Error updating preview data:', error);
+        message.error('Failed to update preview data');
+      }
     }
-    
-    // Update the HTML content to replace all instances of the old variable with the new one
-    if (editor) {
-      const oldPattern = new RegExp(`{{\.${editingVariable}}}`, 'g');
-      const newReplacement = `{{.${newVariableName}}}`;
-      
-      // Get current HTML and replace variable references
-      const currentHtml = editor.getHTML();
-      const updatedHtml = currentHtml.replace(oldPattern, newReplacement);
-      
-      // Update editor content
-      editor.commands.setContent(updatedHtml);
+  }
+  
+  setIsEditModalVisible(false);
+  message.success(`Variable renamed from ${editingVariable} to ${newVariableName}`);
+};
+  // Handle variable deletion
+  const handleDeleteVariable = async (variableName: string) => {
+    // If we have a templateId, delete the variable from the database
+    if (templateId && templateId !== 'default-template') {
+      try {
+        // Find the variable in templateVariables
+        const variableToDelete = templateVariables.find(v => v.key === variableName);
+        
+        if (variableToDelete) {
+          await deleteVariable(templateId, variableToDelete.id);
+          
+          // Update local templateVariables state
+          setTemplateVariables(prev => prev.filter(v => v.key !== variableName));
+        }
+      } catch (error) {
+        console.error('Error deleting variable from database:', error);
+        message.error('Failed to delete variable from database');
+        return;
+      }
     }
     
     // Update variables list
-    const updatedVariables = variables.map(v => v === editingVariable ? newVariableName : v);
+    const updatedVariables = variables.filter(v => v !== variableName);
     setVariables(updatedVariables);
     
     // Update parent component if needed
@@ -221,14 +374,20 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     
     // Update preview data
     const updatedPreviewData = { ...localPreviewData };
-    if (editingVariable in updatedPreviewData) {
-      updatedPreviewData[newVariableName] = updatedPreviewData[editingVariable];
-      delete updatedPreviewData[editingVariable];
-      setLocalPreviewData(updatedPreviewData);
+    delete updatedPreviewData[variableName];
+    setLocalPreviewData(updatedPreviewData);
+    
+    // If templateId is provided, save preview data to database
+    if (templateId && templateId !== 'default-template') {
+      try {
+        await updatePreviewData(templateId, updatedPreviewData);
+      } catch (error) {
+        console.error('Error updating preview data:', error);
+        message.error('Failed to update preview data');
+      }
     }
     
-    setIsEditModalVisible(false);
-    message.success(`Variable renamed from ${editingVariable} to ${newVariableName}`);
+    message.success(`Variable ${variableName} deleted successfully`);
   };
 
   // FIXED: Generate preview with variables replaced
