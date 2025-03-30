@@ -135,9 +135,9 @@ model EmailTemplateBackground {
   id              String          @id @default(cuid())
   bodyBgColor     String          @default("#D9D9D9")
   containerBgColor String         @default("#FFFFFF")
-  headerBgColor   String          @default("#33A8DF")
+  headerBgColor   String          @default("#2b8fbe  ")
   contentBgColor  String          @default("#FFFFFF")
-  footerBgColor   String          @default("#33A8DF")
+  footerBgColor   String          @default("#2b8fbe")
   maxWidth        String          @default("650px")
   
   // Relation to the email template

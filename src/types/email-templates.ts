@@ -101,8 +101,8 @@ export interface EmailTemplate {
   export const DEFAULT_BACKGROUND_SETTINGS: BackgroundSettings = {
 	bodyBgColor: '#D9D9D9',
 	containerBgColor: '#FFFFFF',
-	headerBgColor: '#33A8DF',
+	headerBgColor: '#2b8fbe',
 	contentBgColor: '#FFFFFF',
-	footerBgColor: '#33A8DF',
+	footerBgColor: '#2b8fbe',
 	maxWidth: '650px'
   };

@@ -435,13 +435,13 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #D9D9D9;">
   <div style="width: 100%; margin: 0 auto; background-color: #D9D9D9;">
     <div style="max-width: 650px; margin: 0 auto; background-color: #FFFFFF;">
-      <div style="background-color: #33A8DF; padding: 24px 10px; text-align: center;">
+      <div style="background-color: #2b8fbe; padding: 24px 10px; text-align: center;">
         <div style="color: #FFFFFF; font-size: 24px; font-weight: bold; line-height: 150%;">Email Header</div>
       </div>
       <div style="padding: 40px 20px; background-color: #FFFFFF;">
         ${templateContent}
       </div>
-      <div style="background-color: #33A8DF; padding: 20px 10px; text-align: center;">
+      <div style="background-color: #2b8fbe; padding: 20px 10px; text-align: center;">
         <div style="color: #FFFFFF; font-size: 16px; line-height: 150%;">© 2025 Company Name. All rights reserved.</div>
       </div>
     </div>

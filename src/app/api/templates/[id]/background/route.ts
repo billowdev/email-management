@@ -108,9 +108,9 @@ export async function PUT(request: NextRequest, context: any) {
         data: {
           bodyBgColor: bodyBgColor || "#D9D9D9",
           containerBgColor: containerBgColor || "#FFFFFF",
-          headerBgColor: headerBgColor || "#33A8DF",
+          headerBgColor: headerBgColor || "#2b8fbe",
           contentBgColor: contentBgColor || "#FFFFFF",
-          footerBgColor: footerBgColor || "#33A8DF",
+          footerBgColor: footerBgColor || "#2b8fbe",
           maxWidth: maxWidth || "650px",
           emailTemplateId: templateId,
         },
