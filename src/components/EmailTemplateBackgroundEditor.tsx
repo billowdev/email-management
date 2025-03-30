@@ -185,114 +185,110 @@ const EmailTemplateBackgroundEditor: React.FC<EmailTemplateBackgroundEditorProps
     }
   };
 
-  // Generate header HTML based on settings
-  const generateHeaderHTML = () => {
-    if (!headerFooterSettings || !headerFooterSettings.headerEnabled) {
-      // Default header if no settings available
-      return `<div style="color: #FFFFFF; font-size: 24px; font-weight: bold; line-height: 150%;">Email Header</div>`;
-    }
+ // Generate header HTML based on settings
+const generateHeaderHTML = () => {
+  if (!headerFooterSettings || !headerFooterSettings.headerEnabled) {
+    // Return empty string if no settings or header is disabled
+    return '';
+  }
 
-    let headerHTML = '';
+  let headerHTML = '';
+  
+  // Add logo if available
+  if (headerFooterSettings.headerLogo) {
+    const logoAlignment = headerFooterSettings.headerLogoAlignment || 'center';
+    const logoWidth = headerFooterSettings.headerLogoWidth || 200;
     
-    // Add logo if available
-    if (headerFooterSettings.headerLogo) {
-      const logoAlignment = headerFooterSettings.headerLogoAlignment || 'center';
-      const logoWidth = headerFooterSettings.headerLogoWidth || 200;
-      
-      headerHTML += `<div style="text-align: ${logoAlignment}; margin-bottom: ${headerFooterSettings.headerContent ? '10px' : '0'};">
-        <img src="${headerFooterSettings.headerLogo}" alt="Logo" style="max-width: ${logoWidth}px; max-height: 80px;" />
-      </div>`;
-    }
-    
-    // Add header content if available
-    if (headerFooterSettings.headerContent) {
-      headerHTML += `<div style="
-        color: ${headerFooterSettings.headerTextColor || '#FFFFFF'}; 
-        font-size: 22px; 
-        font-weight: bold;
-        text-align: ${headerFooterSettings.headerLogo ? headerFooterSettings.headerLogoAlignment || 'center' : 'center'};
-      ">
-        ${headerFooterSettings.headerContent}
-      </div>`;
-    }
-    
-    return headerHTML || `<div style="color: #FFFFFF; font-size: 24px; font-weight: bold; line-height: 150%;">Email Header</div>`;
-  };
+    headerHTML += `<div style="text-align: ${logoAlignment}; margin-bottom: ${headerFooterSettings.headerContent ? '10px' : '0'};">
+      <img src="${headerFooterSettings.headerLogo}" alt="Logo" style="max-width: ${logoWidth}px; max-height: 80px;" />
+    </div>`;
+  }
+  
+  // Add header content if available
+  if (headerFooterSettings.headerContent) {
+    headerHTML += `<div style="
+      color: ${headerFooterSettings.headerTextColor || '#FFFFFF'}; 
+      font-size: 22px; 
+      font-weight: bold;
+      text-align: ${headerFooterSettings.headerLogo ? headerFooterSettings.headerLogoAlignment || 'center' : 'center'};
+    ">
+      ${headerFooterSettings.headerContent}
+    </div>`;
+  }
+  
+  return headerHTML;
+};
 
-  // Generate footer HTML based on settings
-  const generateFooterHTML = () => {
-    if (!headerFooterSettings || !headerFooterSettings.footerEnabled) {
-      // Default footer if no settings available
-      return `<div style="color: #FFFFFF; font-size: 16px; line-height: 150%;">© ${new Date().getFullYear()} Company Name. All rights reserved.</div>`;
-    }
+ // Generate footer HTML based on settings
+const generateFooterHTML = () => {
+  if (!headerFooterSettings || !headerFooterSettings.footerEnabled) {
+    // Return empty string if no settings or footer is disabled
+    return '';
+  }
 
-    let footerHTML = '';
+  let footerHTML = '';
+  
+  // Add footer content if available
+  if (headerFooterSettings.footerContent) {
+    footerHTML += `<div style="margin-bottom: 15px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
+      ${headerFooterSettings.footerContent}
+    </div>`;
+  }
+  
+  // Add social icons if enabled
+  if (headerFooterSettings.footerShowSocialIcons && headerFooterSettings.footerSocialLinks?.length > 0) {
+    footerHTML += '<div style="margin-bottom: 15px;">';
     
-    // Add footer content if available
-    if (headerFooterSettings.footerContent) {
-      footerHTML += `<div style="margin-bottom: 15px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
-        ${headerFooterSettings.footerContent}
-      </div>`;
-    }
+    headerFooterSettings.footerSocialLinks
+      .filter((link: any) => link.enabled)
+      .forEach((link: any) => {
+        footerHTML += `<span 
+          style="
+            display: inline-block; 
+            margin: 0 10px;
+            width: 24px;
+            height: 24px;
+            background-color: #FFFFFF;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            color: #333333;
+            font-weight: bold;
+          "
+        >
+          ${link.platform.charAt(0).toUpperCase()}
+        </span>`;
+      });
     
-    // Add social icons if enabled
-    if (headerFooterSettings.footerShowSocialIcons && headerFooterSettings.footerSocialLinks?.length > 0) {
-      footerHTML += '<div style="margin-bottom: 15px;">';
-      
-      headerFooterSettings.footerSocialLinks
-        .filter((link: any) => link.enabled)
-        .forEach((link: any) => {
-          footerHTML += `<span 
-            style="
-              display: inline-block; 
-              margin: 0 10px;
-              width: 24px;
-              height: 24px;
-              background-color: #FFFFFF;
-              border-radius: 50%;
-              text-align: center;
-              line-height: 24px;
-              color: #333333;
-              font-weight: bold;
-            "
-          >
-            ${link.platform.charAt(0).toUpperCase()}
-          </span>`;
-        });
-      
-      footerHTML += '</div>';
-    }
-    
-    // Add company address if enabled
-    if (headerFooterSettings.footerShowAddress && headerFooterSettings.footerAddress) {
-      footerHTML += `<div style="margin-bottom: 10px; font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
-        ${headerFooterSettings.footerAddress}
-      </div>`;
-    }
-    
-    // Add unsubscribe link if enabled
-    if (headerFooterSettings.footerShowUnsubscribe) {
-      footerHTML += `<div style="margin-bottom: 10px; font-size: 12px;">
-        <a href="${headerFooterSettings.footerUnsubscribeUrl || '#'}" 
-           style="color: ${headerFooterSettings.footerTextColor || '#FFFFFF'}; text-decoration: underline;">
-          ${headerFooterSettings.footerUnsubscribeText || 'Unsubscribe'}
-        </a>
-      </div>`;
-    }
-    
-    // Add copyright text
-    if (headerFooterSettings.footerCopyrightText) {
-      footerHTML += `<div style="font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
-        ${headerFooterSettings.footerCopyrightText}
-      </div>`;
-    } else {
-      footerHTML += `<div style="font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
-        © ${new Date().getFullYear()} Company Name. All rights reserved.
-      </div>`;
-    }
-    
-    return footerHTML;
-  };
+    footerHTML += '</div>';
+  }
+  
+  // Add company address if enabled
+  if (headerFooterSettings.footerShowAddress && headerFooterSettings.footerAddress) {
+    footerHTML += `<div style="margin-bottom: 10px; font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
+      ${headerFooterSettings.footerAddress}
+    </div>`;
+  }
+  
+  // Add unsubscribe link if enabled
+  if (headerFooterSettings.footerShowUnsubscribe) {
+    footerHTML += `<div style="margin-bottom: 10px; font-size: 12px;">
+      <a href="${headerFooterSettings.footerUnsubscribeUrl || '#'}" 
+         style="color: ${headerFooterSettings.footerTextColor || '#FFFFFF'}; text-decoration: underline;">
+        ${headerFooterSettings.footerUnsubscribeText || 'Unsubscribe'}
+      </a>
+    </div>`;
+  }
+  
+  // Add copyright text
+  if (headerFooterSettings.footerCopyrightText) {
+    footerHTML += `<div style="font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
+      ${headerFooterSettings.footerCopyrightText}
+    </div>`;
+  }
+  
+  return footerHTML;
+};
 
   const updatePreview = async () => {
     try {
