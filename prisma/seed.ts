@@ -7,6 +7,45 @@ const prisma = new PrismaClient();
 // to match the enum in the schema
 type VariableType = 'TEXT' | 'DATE' | 'NUMBER' | 'EMAIL' | 'URL' | 'BOOLEAN';
 
+// Default header/footer settings
+const defaultHeaderFooterSettings = {
+  // Header settings
+  headerEnabled: true,
+  headerContent: 'Company Name',
+  headerTextColor: '#FFFFFF',
+  headerLogo: '',
+  headerLogoAlignment: 'center',
+  headerLogoWidth: 200,
+  
+  // Footer settings
+  footerEnabled: true,
+  footerContent: '',
+  footerTextColor: '#FFFFFF',
+  footerShowSocialIcons: true,
+  footerSocialLinks: [
+    { platform: 'facebook', url: 'https://facebook.com/', enabled: true },
+    { platform: 'twitter', url: 'https://twitter.com/', enabled: true },
+    { platform: 'instagram', url: 'https://instagram.com/', enabled: true },
+    { platform: 'linkedin', url: 'https://linkedin.com/', enabled: false }
+  ],
+  footerShowUnsubscribe: true,
+  footerUnsubscribeText: 'Unsubscribe',
+  footerUnsubscribeUrl: '{{.unsubscribeUrl}}',
+  footerShowAddress: true,
+  footerAddress: '123 Main St, City, State 12345',
+  footerCopyrightText: `© ${new Date().getFullYear()} Company Name. All Rights Reserved.`
+};
+
+// Default background settings
+const defaultBackgroundSettings = {
+  bodyBgColor: "#D9D9D9",
+  containerBgColor: "#FFFFFF",
+  headerBgColor: "#2b8fbe",
+  contentBgColor: "#FFFFFF",
+  footerBgColor: "#2b8fbe",
+  maxWidth: "650px"
+};
+
 async function main() {
   console.log('Starting seed...');
 
@@ -66,6 +105,24 @@ async function main() {
             loginLink: 'https://example.com/login'
           }
         }
+      },
+      background: {
+        create: {
+          ...defaultBackgroundSettings,
+          headerBgColor: "#4A90E2" // Custom blue for welcome emails
+        }
+      }
+    }
+  });
+
+  // Add header/footer to welcome email template
+  await prisma.emailTemplateHeaderFooter.create({
+    data: {
+      emailTemplateId: welcomeEmailTemplate.id,
+      settings: {
+        ...defaultHeaderFooterSettings,
+        headerContent: 'Welcome to {{.companyName}}',
+        footerCopyrightText: `© ${new Date().getFullYear()} {{.companyName}}. All Rights Reserved.`
       }
     }
   });
@@ -136,6 +193,25 @@ async function main() {
             deliveryAddress: '123 Main St, Anytown, ST 12345'
           }
         }
+      },
+      background: {
+        create: {
+          ...defaultBackgroundSettings,
+          headerBgColor: "#27AE60" // Green for order confirmation
+        }
+      }
+    }
+  });
+
+  // Add header/footer to order confirmation template
+  await prisma.emailTemplateHeaderFooter.create({
+    data: {
+      emailTemplateId: orderConfirmationTemplate.id,
+      settings: {
+        ...defaultHeaderFooterSettings,
+        headerContent: 'Order Confirmation',
+        headerLogo: 'https://placehold.co/200x50?text=LOGO',
+        footerContent: 'Thank you for your order!'
       }
     }
   });
@@ -190,6 +266,25 @@ async function main() {
             companyName: 'Acme Inc'
           }
         }
+      },
+      background: {
+        create: {
+          ...defaultBackgroundSettings,
+          headerBgColor: "#F39C12" // Orange/yellow for security emails
+        }
+      }
+    }
+  });
+
+  // Add header/footer to password reset template
+  await prisma.emailTemplateHeaderFooter.create({
+    data: {
+      emailTemplateId: passwordResetTemplate.id,
+      settings: {
+        ...defaultHeaderFooterSettings,
+        headerContent: 'Password Reset',
+        footerShowAddress: false,
+        footerCopyrightText: `© ${new Date().getFullYear()} {{.companyName}}. This email contains sensitive information.`
       }
     }
   });
@@ -278,6 +373,30 @@ async function main() {
             companyName: 'Acme Inc'
           }
         }
+      },
+      background: {
+        create: {
+          ...defaultBackgroundSettings,
+          headerBgColor: "#3498DB" // Lighter blue for shipping
+        }
+      }
+    }
+  });
+
+  // Add header/footer to shipping notification template
+  await prisma.emailTemplateHeaderFooter.create({
+    data: {
+      emailTemplateId: shippingNotificationTemplate.id,
+      settings: {
+        ...defaultHeaderFooterSettings,
+        headerContent: 'Shipping Confirmation',
+        headerLogo: 'https://placehold.co/200x50?text=SHIPPING',
+        footerContent: 'Track your package with the link above.',
+        footerSocialLinks: [
+          { platform: 'facebook', url: 'https://facebook.com/', enabled: true },
+          { platform: 'twitter', url: 'https://twitter.com/', enabled: true },
+          { platform: 'instagram', url: 'https://instagram.com/', enabled: false }
+        ]
       }
     }
   });
@@ -384,6 +503,36 @@ async function main() {
             unsubscribeLink: 'https://example.com/unsubscribe?email=customer@example.com'
           }
         }
+      },
+      background: {
+        create: {
+          ...defaultBackgroundSettings,
+          headerBgColor: "#8E44AD", // Purple for newsletter
+          footerBgColor: "#8E44AD"
+        }
+      }
+    }
+  });
+
+  // Add header/footer to newsletter template
+  await prisma.emailTemplateHeaderFooter.create({
+    data: {
+      emailTemplateId: newsletterTemplate.id,
+      settings: {
+        ...defaultHeaderFooterSettings,
+        headerContent: '{{.companyName}} Newsletter',
+        headerLogo: 'https://placehold.co/200x50?text=NEWSLETTER',
+        headerLogoAlignment: 'left',
+        footerShowSocialIcons: true,
+        footerSocialLinks: [
+          { platform: 'facebook', url: 'https://facebook.com/', enabled: true },
+          { platform: 'twitter', url: 'https://twitter.com/', enabled: true },
+          { platform: 'instagram', url: 'https://instagram.com/', enabled: true },
+          { platform: 'linkedin', url: 'https://linkedin.com/', enabled: true },
+          { platform: 'youtube', url: 'https://youtube.com/', enabled: true }
+        ],
+        footerShowUnsubscribe: true,
+        footerUnsubscribeUrl: '{{.unsubscribeLink}}'
       }
     }
   });
@@ -443,6 +592,29 @@ async function main() {
             senderName: 'The Team'
           }
         }
+      },
+      background: {
+        create: {
+          ...defaultBackgroundSettings,
+          headerBgColor: "#E74C3C", // Red for thank you
+          footerBgColor: "#E74C3C"
+        }
+      }
+    }
+  });
+
+  // Add header/footer to user template
+  await prisma.emailTemplateHeaderFooter.create({
+    data: {
+      emailTemplateId: userTemplate.id,
+      settings: {
+        ...defaultHeaderFooterSettings,
+        headerContent: 'Thank You!',
+        headerLogoAlignment: 'center',
+        footerContent: 'We value your business',
+        footerShowSocialIcons: false,
+        footerShowAddress: false,
+        footerCopyrightText: `Sincerely, {{.senderName}}`
       }
     }
   });

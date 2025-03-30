@@ -12,34 +12,35 @@ datasource db {
 
 // Email templates
 model EmailTemplate {
-  id              String            @id @default(uuid())
-  name            String
-  description     String?
-  defaultContent  String            @db.Text
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  userId          String?
-  user            User?             @relation(fields: [userId], references: [id])
-  isSystem        Boolean           @default(false)
-  variables       TemplateVariable[]
-  previewData     PreviewData[]
-  templateFolder  TemplateFolder?   @relation(fields: [foldererId], references: [id])
-  foldererId      String?
-  background      EmailTemplateBackground?
+  id             String                     @id @default(uuid())
+  name           String
+  description    String?
+  defaultContent String                     @db.Text
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  userId         String?
+  user           User?                      @relation(fields: [userId], references: [id])
+  isSystem       Boolean                    @default(false)
+  variables      TemplateVariable[]
+  previewData    PreviewData[]
+  templateFolder TemplateFolder?            @relation(fields: [foldererId], references: [id])
+  foldererId     String?
+  background     EmailTemplateBackground?
+  headerFooter   EmailTemplateHeaderFooter?
 }
 
 // Template variables
 model TemplateVariable {
-  id              String          @id @default(uuid())
+  id              String        @id @default(uuid())
   key             String
   name            String
-  type            VariableType    @default(TEXT)
+  type            VariableType  @default(TEXT)
   defaultValue    String?
   description     String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  required        Boolean         @default(false)
-  emailTemplate   EmailTemplate   @relation(fields: [emailTemplateId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  required        Boolean       @default(false)
+  emailTemplate   EmailTemplate @relation(fields: [emailTemplateId], references: [id], onDelete: Cascade)
   emailTemplateId String
 
   @@unique([emailTemplateId, key])
@@ -60,57 +61,57 @@ model PreviewData {
 
 // Folders for organizing templates
 model TemplateFolder {
-  id              String          @id @default(uuid())
-  name            String
-  description     String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  userId          String?
-  user            User?           @relation(fields: [userId], references: [id])
-  parentId        String?
-  parent          TemplateFolder? @relation("FolderHierarchy", fields: [parentId], references: [id])
-  children        TemplateFolder[] @relation("FolderHierarchy")
-  templates       EmailTemplate[]
+  id          String           @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  userId      String?
+  user        User?            @relation(fields: [userId], references: [id])
+  parentId    String?
+  parent      TemplateFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children    TemplateFolder[] @relation("FolderHierarchy")
+  templates   EmailTemplate[]
 }
 
 // Saved email templates (used templates with populated variables)
 model SavedEmailTemplate {
-  id              String        @id @default(uuid())
-  name            String
-  content         String        @db.Text
-  variableValues  Json          @db.JsonB
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  userId          String
-  user            User          @relation(fields: [userId], references: [id])
-  sentEmails      SentEmail[]
+  id             String      @id @default(uuid())
+  name           String
+  content        String      @db.Text
+  variableValues Json        @db.JsonB
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  userId         String
+  user           User        @relation(fields: [userId], references: [id])
+  sentEmails     SentEmail[]
 }
 
 // Sent emails record
 model SentEmail {
-  id                  String            @id @default(uuid())
-  recipient           String
-  subject             String
-  content             String            @db.Text
-  sentAt              DateTime          @default(now())
-  status              EmailStatus       @default(SENT)
-  userId              String
-  user                User              @relation(fields: [userId], references: [id])
-  savedEmailTemplate  SavedEmailTemplate? @relation(fields: [templateId], references: [id])
-  templateId          String?
+  id                 String              @id @default(uuid())
+  recipient          String
+  subject            String
+  content            String              @db.Text
+  sentAt             DateTime            @default(now())
+  status             EmailStatus         @default(SENT)
+  userId             String
+  user               User                @relation(fields: [userId], references: [id])
+  savedEmailTemplate SavedEmailTemplate? @relation(fields: [templateId], references: [id])
+  templateId         String?
 }
 
 // Users
 model User {
-  id                String              @id @default(uuid())
-  email             String              @unique
-  name              String?
-  templates         EmailTemplate[]
-  savedTemplates    SavedEmailTemplate[]
-  sentEmails        SentEmail[]
-  folders           TemplateFolder[]
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  id             String               @id @default(uuid())
+  email          String               @unique
+  name           String?
+  templates      EmailTemplate[]
+  savedTemplates SavedEmailTemplate[]
+  sentEmails     SentEmail[]
+  folders        TemplateFolder[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 }
 
 // Enums
@@ -132,18 +133,31 @@ enum EmailStatus {
 }
 
 model EmailTemplateBackground {
-  id              String          @id @default(cuid())
-  bodyBgColor     String          @default("#D9D9D9")
-  containerBgColor String         @default("#FFFFFF")
-  headerBgColor   String          @default("#2b8fbe  ")
-  contentBgColor  String          @default("#FFFFFF")
-  footerBgColor   String          @default("#2b8fbe")
-  maxWidth        String          @default("650px")
-  
+  id               String @id @default(cuid())
+  bodyBgColor      String @default("#D9D9D9")
+  containerBgColor String @default("#FFFFFF")
+  headerBgColor    String @default("#2b8fbe  ")
+  contentBgColor   String @default("#FFFFFF")
+  footerBgColor    String @default("#2b8fbe")
+  maxWidth         String @default("650px")
+
   // Relation to the email template
-  emailTemplate   EmailTemplate   @relation(fields: [emailTemplateId], references: [id], onDelete: Cascade)
-  emailTemplateId String          @unique
-  
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  emailTemplate   EmailTemplate @relation(fields: [emailTemplateId], references: [id], onDelete: Cascade)
+  emailTemplateId String        @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Email template header/footer settings
+model EmailTemplateHeaderFooter {
+  id       String @id @default(cuid())
+  settings Json   @db.JsonB // Store the entire settings object as JSON
+
+  // Relation to the email template
+  emailTemplate   EmailTemplate @relation(fields: [emailTemplateId], references: [id], onDelete: Cascade)
+  emailTemplateId String        @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
