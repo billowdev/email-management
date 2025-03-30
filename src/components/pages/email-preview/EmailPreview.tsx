@@ -2,7 +2,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { PreviewData } from '@/types/email-templates'
-import ExportOptionsComponent from '@/components/editor/sections/ExportOptionsComponent'
+import ExportOptionsComponent from '@/components/editor/sections/export/ExportOptionsComponent'
 import { getTemplateHeaderFooter, applyHeaderFooterToContent } from '@/services/emailTemplateService'
 // Import Ant Design components
 import { 

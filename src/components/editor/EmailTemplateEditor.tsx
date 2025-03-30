@@ -19,7 +19,7 @@ import {
   deleteVariable, 
   updatePreviewData 
 } from '@/services/emailTemplateService';
-import ExportOptionsComponent from '@/components/editor/sections/ExportOptionsComponent';
+import ExportOptionsComponent from '@/components/editor/sections/export/ExportOptionsComponent';
 
 import ImageUploadComponent from '@/components/editor/sections/ImageUploadComponent';
 import EmailSectionsComponent from '@/components/editor/sections/EmailSectionsComponent';

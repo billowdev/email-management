@@ -43,7 +43,7 @@ import {
   LoadingOutlined
 } from '@ant-design/icons'
 import { Header } from 'antd/es/layout/layout'
-import ExportOptionsComponent from '@/components/editor/sections/ExportOptionsComponent';
+import ExportOptionsComponent from '@/components/editor/sections/export/ExportOptionsComponent';
 import { 
   exportRawTemplate, 
   exportTemplateWithData, 
