@@ -519,11 +519,11 @@ const handleUpdateVariable = async (variableId: string, updates: Partial<Templat
             </div>
             
             {/* Add Variable Component */}
-            <AddVariableComponent 
+            {/* <AddVariableComponent 
               existingVariables={getVariableKeys()}
               onAddVariable={handleAddVariable}
               templateId={selectedTemplate.id}
-            />
+            /> */}
             
             <Divider />
             
