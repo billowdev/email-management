@@ -38,7 +38,7 @@ A sophisticated email template management system with rich features for creating
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/email-management.git
+   git clone https://github.com/billowdev/email-management.git
    cd email-management
    ```
 
