@@ -1,7 +1,9 @@
+// src/components/pages/email-preview/EmailPreview.tsx
 "use client"
 import { useState, useEffect } from 'react'
 import { PreviewData } from '@/types/email-templates'
 import ExportOptionsComponent from '@/components/editor/ExportOptionsComponent'
+import { getTemplateHeaderFooter, applyHeaderFooterToContent } from '@/services/emailTemplateService'
 // Import Ant Design components
 import { 
   Card, 
@@ -9,13 +11,15 @@ import {
   Button, 
   Space, 
   Tooltip,
-  Select
+  Select,
+  Spin
 } from 'antd'
 import { 
   MailOutlined, 
   PrinterOutlined, 
   MobileOutlined,
-  LaptopOutlined
+  LaptopOutlined,
+  LoadingOutlined
 } from '@ant-design/icons'
 
 const { Text } = Typography;
@@ -42,23 +46,52 @@ const EmailPreview: React.FC<EmailPreviewProps> = ({
   const [previewHtml, setPreviewHtml] = useState<string>('')
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop')
   const [showVariablePanel, setShowVariablePanel] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [headerFooterApplied, setHeaderFooterApplied] = useState<boolean>(false)
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  // Update preview HTML when html or previewData changes
+  // Load header/footer from database and apply them to the HTML
   useEffect(() => {
-    // Replace variables in the provided HTML
-    let processedHtml = html
+    if (isMounted && templateId) {
+      applyHeaderFooterToPreview();
+    }
+  }, [templateId, html, previewData, isMounted]);
+
+  // Apply header/footer to the preview
+  const applyHeaderFooterToPreview = async () => {
+    setLoading(true);
     
-    Object.entries(previewData).forEach(([key, value]) => {
-      const regex = new RegExp(`{{\.${key}}}`, 'g')
-      processedHtml = processedHtml.replace(regex, String(value))
-    })
-    
-    setPreviewHtml(processedHtml)
-  }, [html, previewData])
+    try {
+      // First, replace variables in the provided HTML
+      let processedHtml = html;
+      
+      Object.entries(previewData).forEach(([key, value]) => {
+        const regex = new RegExp(`{{\.${key}}}`, 'g');
+        processedHtml = processedHtml.replace(regex, String(value || ''));
+      });
+      
+      // Try to apply header/footer from database
+      try {
+        const htmlWithHeaderFooter = await applyHeaderFooterToContent(templateId, processedHtml, previewData);
+        setPreviewHtml(htmlWithHeaderFooter);
+        setHeaderFooterApplied(true);
+      } catch (error) {
+        console.error('Error applying header/footer:', error);
+        
+        // Fallback to just the processed HTML without header/footer
+        setPreviewHtml(processedHtml);
+        setHeaderFooterApplied(false);
+      }
+    } catch (error) {
+      console.error('Error processing template:', error);
+      setPreviewHtml(html); // Fallback to original HTML
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePrintPreview = () => {
     const printWindow = window.open('', '_blank');
@@ -90,10 +123,12 @@ const EmailPreview: React.FC<EmailPreviewProps> = ({
 
   const handleUpdatePreviewData = (key: string, value: string) => {
     if (onUpdatePreviewData) {
-      onUpdatePreviewData({
+      const updatedData = {
         ...previewData,
         [key]: value
-      });
+      };
+      
+      onUpdatePreviewData(updatedData);
     }
   }
 
@@ -109,26 +144,18 @@ const EmailPreview: React.FC<EmailPreviewProps> = ({
           <Text strong className="text-lg">Email Preview</Text>
           
           <Space>
-            {/* <Tooltip title="Toggle test data panel">
-              <Button 
-                onClick={() => setShowVariablePanel(!showVariablePanel)}
-                type={showVariablePanel ? "primary" : "default"}
-              >
-                Test Data
-              </Button>
-            </Tooltip> */}
-            {/* <Tooltip title="Toggle mobile view">
+            <Tooltip title="Toggle mobile view">
               <Button 
                 icon={viewMode === 'mobile' ? <LaptopOutlined /> : <MobileOutlined />}
                 onClick={() => setViewMode(viewMode === 'mobile' ? 'desktop' : 'mobile')}
                 type={viewMode === 'mobile' ? 'primary' : 'default'}
               />
-            </Tooltip> */}
+            </Tooltip>
             <Tooltip title="Print preview">
               <Button icon={<PrinterOutlined />} onClick={handlePrintPreview} />
             </Tooltip>
             
-            {/* New Export Options Component */}
+            {/* Export Options Component */}
             <ExportOptionsComponent
               html={previewHtml}
               rawTemplateHtml={html}
@@ -153,10 +180,17 @@ const EmailPreview: React.FC<EmailPreviewProps> = ({
                 <Text strong>Email Subject Would Appear Here</Text>
               </div>
               
-              <div 
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
-              />
+              {loading ? (
+                <div className="flex justify-center items-center py-20">
+                  <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+                  <Text className="ml-2">Loading preview...</Text>
+                </div>
+              ) : (
+                <div 
+                  className="prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: previewHtml }}
+                />
+              )}
             </Card>
           </div>
         </div>
@@ -182,6 +216,13 @@ const EmailPreview: React.FC<EmailPreviewProps> = ({
           </div>
         )}
       </div>
+      
+      {/* Status information about template */}
+      {!loading && !headerFooterApplied && (
+        <div className="mt-4 p-2 bg-yellow-50 text-yellow-700 text-sm rounded border border-yellow-200">
+          <Text strong>Note:</Text> No custom header/footer was found for this template. Using content only.
+        </div>
+      )}
     </Card>
   )
 }

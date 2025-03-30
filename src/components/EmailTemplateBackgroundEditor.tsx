@@ -20,7 +20,6 @@ import EmailHeaderFooterComponent from './EmailHeaderFooterComponent';
 
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
-const { TabPane } = Tabs;
 
 interface EmailTemplateBackgroundEditorProps {
   currentHtml: string;
@@ -41,6 +40,7 @@ const EmailTemplateBackgroundEditor: React.FC<EmailTemplateBackgroundEditorProps
   const [saveLoading, setSaveLoading] = useState<boolean>(false);
   const [headerFooterLoading, setHeaderFooterLoading] = useState<boolean>(false);
   const [headerFooterSettings, setHeaderFooterSettings] = useState<any>(null);
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
 
   // Load background settings from the database
   useEffect(() => {
@@ -290,129 +290,257 @@ const generateFooterHTML = () => {
   return footerHTML;
 };
 
-  const updatePreview = async () => {
-    try {
-      // Create a DOM parser
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(currentHtml, 'text/html');
+const updatePreview = async () => {
+  try {
+    setPreviewLoading(true);
+    
+    // First, preserve the original content
+    let originalContent = currentHtml;
+    
+    // Create a DOM parser
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(currentHtml, 'text/html');
+    
+    // Extract the actual content - this is what's getting lost
+    // First check if we already have a structured template
+    let contentHtml = '';
+    const existingContentSection = doc.querySelector('div[style*="padding"][style*="background-color"]');
+    
+    if (existingContentSection) {
+      // If we already have a structure, extract the content from the content section
+      contentHtml = existingContentSection.innerHTML;
+    } else {
+      // If no structure, the entire body is the content
+      contentHtml = doc.body.innerHTML;
+    }
+    
+    // Now create or update the email structure
+    const needsStructure = !doc.querySelector('body > div[style*="margin: 0 auto"]');
+    
+    if (needsStructure) {
+      // The current HTML doesn't have our email structure, we need to build it
       
-      // Check if we need to create the email structure
-      const needsStructure = !doc.querySelector('body > div[style*="margin: 0 auto"]');
+      // Clear the body
+      doc.body.innerHTML = '';
       
-      if (needsStructure) {
-        // The current HTML doesn't have our email structure, we need to build it
-        const emailContent = doc.body.innerHTML;
+      // Create the email structure
+      const bodyStyles = `margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: ${settings.bodyBgColor};`;
+      doc.body.setAttribute('style', bodyStyles);
+      
+      // Create the outer container
+      const outerContainer = doc.createElement('div');
+      outerContainer.setAttribute('style', `width: 100%; margin: 0 auto; background-color: ${settings.bodyBgColor};`);
+      
+      // Create the inner container
+      const innerContainer = doc.createElement('div');
+      innerContainer.setAttribute('style', `max-width: ${settings.maxWidth}; margin: 0 auto; background-color: ${settings.containerBgColor};`);
+      
+      // Create the content section - DON'T add default header/footer
+      const content = doc.createElement('div');
+      content.setAttribute('style', `padding: 40px 20px; background-color: ${settings.contentBgColor};`);
+      content.innerHTML = contentHtml; // Use the preserved content
+      
+      // Assemble the structure - without default header/footer
+      innerContainer.appendChild(content);
+      outerContainer.appendChild(innerContainer);
+      doc.body.appendChild(outerContainer);
+    } else {
+      // The template already has structure, update the styles
+      
+      // Update body background
+      doc.body.style.backgroundColor = settings.bodyBgColor;
+      
+      // Update outer container
+      const outerContainers = doc.querySelectorAll('body > div');
+      if (outerContainers.length > 0) {
+        (outerContainers[0] as HTMLElement).style.backgroundColor = settings.bodyBgColor;
         
-        // Clear the body
-        doc.body.innerHTML = '';
-        
-        // Create the email structure
-        const bodyStyles = `margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: ${settings.bodyBgColor};`;
-        doc.body.setAttribute('style', bodyStyles);
-        
-        // Create the outer container
-        const outerContainer = doc.createElement('div');
-        outerContainer.setAttribute('style', `width: 100%; margin: 0 auto; background-color: ${settings.bodyBgColor};`);
-        
-        // Create the inner container
-        const innerContainer = doc.createElement('div');
-        innerContainer.setAttribute('style', `max-width: ${settings.maxWidth}; margin: 0 auto; background-color: ${settings.containerBgColor};`);
-        
-        // Create the header with dynamic content from settings
-        const header = doc.createElement('div');
-        header.setAttribute('style', `background-color: ${settings.headerBgColor}; padding: 24px 10px; text-align: center;`);
-        header.innerHTML = generateHeaderHTML();
-        
-        // Create the content section
-        const content = doc.createElement('div');
-        content.setAttribute('style', `padding: 40px 20px; background-color: ${settings.contentBgColor};`);
-        content.innerHTML = emailContent;
-        
-        // Create the footer with dynamic content from settings
-        const footer = doc.createElement('div');
-        footer.setAttribute('style', `background-color: ${settings.footerBgColor}; padding: 20px 10px; text-align: center;`);
-        footer.innerHTML = generateFooterHTML();
-        
-        // Assemble the structure
-        innerContainer.appendChild(header);
-        innerContainer.appendChild(content);
-        innerContainer.appendChild(footer);
-        outerContainer.appendChild(innerContainer);
-        doc.body.appendChild(outerContainer);
-      } else {
-        // The template already has structure, update the styles
-        
-        // Update body background
-        doc.body.style.backgroundColor = settings.bodyBgColor;
-        
-        // Update outer container
-        const outerContainers = doc.querySelectorAll('body > div');
-        if (outerContainers.length > 0) {
-          (outerContainers[0] as HTMLElement).style.backgroundColor = settings.bodyBgColor;
-          
-          // Update inner container (with max-width)
-          const innerContainers = outerContainers[0].querySelectorAll('div');
-          if (innerContainers.length > 0) {
-            for (let i = 0; i < innerContainers.length; i++) {
-              const style = innerContainers[i].getAttribute('style') || '';
-              if (style.includes('max-width')) {
-                innerContainers[i].style.backgroundColor = settings.containerBgColor;
-                innerContainers[i].style.maxWidth = settings.maxWidth;
-                
-                // Find header, content and footer sections
-                const sections = innerContainers[i].children;
-                if (sections.length > 0) {
-                  // First section is usually the header
-                  const headerSection = sections[0] as HTMLElement;
-                  headerSection.style.backgroundColor = settings.headerBgColor;
-                  
-                  // Update header content if we have settings
-                  if (headerFooterSettings && headerFooterSettings.headerEnabled) {
-                    headerSection.innerHTML = generateHeaderHTML();
-                  }
-                  
-                  // Middle section is usually the content
-                  if (sections.length > 1) {
-                    (sections[1] as HTMLElement).style.backgroundColor = settings.contentBgColor;
-                  }
-                  
-                  // Last section is usually the footer
-                  if (sections.length > 2) {
-                    const footerSection = sections[sections.length - 1] as HTMLElement;
-                    footerSection.style.backgroundColor = settings.footerBgColor;
+        // Update inner container (with max-width)
+        const innerContainers = outerContainers[0].querySelectorAll('div');
+        if (innerContainers.length > 0) {
+          for (let i = 0; i < innerContainers.length; i++) {
+            const style = innerContainers[i].getAttribute('style') || '';
+            if (style.includes('max-width')) {
+              innerContainers[i].style.backgroundColor = settings.containerBgColor;
+              innerContainers[i].style.maxWidth = settings.maxWidth;
+              
+              // Find content section and make sure it's updated
+              const contentSections = innerContainers[i].querySelectorAll('div[style*="padding"]');
+              let contentUpdated = false;
+              
+              if (contentSections.length > 0) {
+                for (let j = 0; j < contentSections.length; j++) {
+                  const sectionStyle = contentSections[j].getAttribute('style') || '';
+                  // Only update sections that are content (not header/footer)
+                  if (!sectionStyle.includes('text-align: center') && 
+                      !sectionStyle.includes(settings.headerBgColor) && 
+                      !sectionStyle.includes(settings.footerBgColor)) {
+                    // This is likely the content section
+                    (contentSections[j] as HTMLElement).style.backgroundColor = settings.contentBgColor;
                     
-                    // Update footer content if we have settings
-                    if (headerFooterSettings && headerFooterSettings.footerEnabled) {
-                      footerSection.innerHTML = generateFooterHTML();
+                    // Make sure content is preserved and stays put
+                    if (!contentUpdated && contentHtml) {
+                      contentSections[j].innerHTML = contentHtml;
+                      contentUpdated = true;
                     }
                   }
                 }
-                break;
               }
+              
+              break;
             }
           }
         }
       }
-      
-      // Convert back to HTML string
-      let updatedHtml = doc.documentElement.outerHTML;
-      
-      // If we're not already applying our custom header/footer through the DOM manipulation above,
-      // then use the applyHeaderFooterToContent function for a more complete application
-      if ((!headerFooterSettings || !headerFooterSettings.headerEnabled) && templateId) {
-        try {
-          updatedHtml = await applyHeaderFooterToContent(templateId, updatedHtml, {});
-        } catch (error) {
-          console.error('Error applying header/footer to preview:', error);
+    }
+    
+    // Convert back to HTML string
+    let updatedHtml = doc.documentElement.outerHTML;
+    
+    // Apply header/footer from the database
+    if (templateId) {
+      try {
+        // Create a proper structure with content preserved before applying header/footer
+        // This is a temporary solution - ideally, applyHeaderFooterToContent should be fixed
+        const tempParser = new DOMParser();
+        const tempDoc = tempParser.parseFromString(updatedHtml, 'text/html');
+        
+        // Double-check if content is still there
+        const mainContent = tempDoc.querySelector('div[style*="padding"][style*="background-color"]:not([style*="text-align: center"])');
+        if (!mainContent || !mainContent.innerHTML.trim()) {
+          console.warn("Content seems missing before applying header/footer, restoring it");
+          
+          // Try to find content container and restore content
+          const contentContainer = tempDoc.querySelector('div[style*="padding"][style*="background-color"]:not([style*="text-align"])');
+          if (contentContainer) {
+            contentContainer.innerHTML = contentHtml;
+          }
+          
+          // Update HTML before applying header/footer
+          updatedHtml = tempDoc.documentElement.outerHTML;
+        }
+        
+        // Now apply header and footer
+        updatedHtml = await applyHeaderFooterToContent(templateId, updatedHtml, {});
+        
+        // One more check after header/footer application to ensure content is still there
+        const finalParser = new DOMParser();
+        const finalDoc = finalParser.parseFromString(updatedHtml, 'text/html');
+        const finalContent = finalDoc.querySelector('div[style*="padding"][style*="background-color"]:not([style*="text-align: center"])');
+        
+        if (!finalContent || !finalContent.innerHTML.trim()) {
+          console.warn("Content lost after applying header/footer, fixing");
+          
+          // Find content container between header and footer
+          const containers = finalDoc.querySelectorAll('div[style*="background-color"]');
+          if (containers.length > 1) {
+            // Assume first is header, last is footer, anything in between might be content
+            for (let i = 1; i < containers.length - 1; i++) {
+              const containerStyle = containers[i].getAttribute('style') || '';
+              if (containerStyle.includes('padding') && !containerStyle.includes('text-align: center')) {
+                containers[i].innerHTML = contentHtml;
+                break;
+              }
+            }
+          }
+          
+          // If we couldn't find a suitable container, try a different approach
+          if (!finalDoc.querySelector('div[style*="padding"][style*="background-color"]:not([style*="text-align: center"])')) {
+            // Find the main container and insert a new content div
+            const mainContainer = finalDoc.querySelector('div[style*="max-width"]');
+            if (mainContainer) {
+              const newContent = finalDoc.createElement('div');
+              newContent.setAttribute('style', `padding: 40px 20px; background-color: ${settings.contentBgColor};`);
+              newContent.innerHTML = contentHtml;
+              
+              // Insert after header (if it exists) or as first child
+              const header = mainContainer.querySelector('div[style*="text-align: center"]');
+              if (header) {
+                header.after(newContent);
+              } else {
+                mainContainer.prepend(newContent);
+              }
+            }
+          }
+          
+          // Update HTML again
+          updatedHtml = finalDoc.documentElement.outerHTML;
+        }
+      } catch (error) {
+        console.error('Error applying header/footer to preview:', error);
+        
+        // If header/footer application fails, ensure we at least have the content
+        const fallbackParser = new DOMParser();
+        const fallbackDoc = fallbackParser.parseFromString(updatedHtml, 'text/html');
+        
+        // Check if content is present
+        const contentCheck = fallbackDoc.querySelector('div[style*="padding"][style*="background-color"]:not([style*="text-align: center"])');
+        if (!contentCheck || !contentCheck.innerHTML.trim()) {
+          console.warn("Content missing in fallback, restoring");
+          
+          // Try to find main container
+          const mainContainer = fallbackDoc.querySelector('div[style*="max-width"]');
+          if (mainContainer) {
+            // Create content div
+            const contentDiv = fallbackDoc.createElement('div');
+            contentDiv.setAttribute('style', `padding: 40px 20px; background-color: ${settings.contentBgColor};`);
+            contentDiv.innerHTML = contentHtml;
+            mainContainer.appendChild(contentDiv);
+          }
+          
+          updatedHtml = fallbackDoc.documentElement.outerHTML;
         }
       }
-      
-      setPreviewHtml(updatedHtml);
-    } catch (error) {
-      console.error('Error updating preview:', error);
-      setPreviewHtml(currentHtml);
     }
-  };
+    
+    // Final sanity check to ensure content is present
+    const finalCheckParser = new DOMParser();
+    const finalCheckDoc = finalCheckParser.parseFromString(updatedHtml, 'text/html');
+    let contentPresent = false;
+    
+    // Look for content within properly structured elements
+    const contentElements = finalCheckDoc.querySelectorAll('div[style*="padding"]');
+    for (let i = 0; i < contentElements.length; i++) {
+      const el = contentElements[i];
+      const style = el.getAttribute('style') || '';
+      
+      // Skip header/footer elements
+      if (!style.includes('text-align: center') && el.innerHTML.trim()) {
+        contentPresent = true;
+        break;
+      }
+    }
+    
+    // If content still missing, force it back in
+    if (!contentPresent) {
+      console.warn("Final attempt to restore content");
+      // Find the container element
+      const container = finalCheckDoc.querySelector('div[style*="max-width"]');
+      if (container) {
+        const forceContent = finalCheckDoc.createElement('div');
+        forceContent.setAttribute('style', `padding: 40px 20px; background-color: ${settings.contentBgColor};`);
+        forceContent.innerHTML = contentHtml;
+        
+        // Insert in the middle if there are multiple children
+        if (container.children.length >= 2) {
+          container.insertBefore(forceContent, container.children[1]);
+        } else {
+          container.appendChild(forceContent);
+        }
+        
+        updatedHtml = finalCheckDoc.documentElement.outerHTML;
+      }
+    }
+    
+    setPreviewHtml(updatedHtml);
+    setPreviewLoading(false);
+  } catch (error) {
+    console.error('Error updating preview:', error);
+    // In case of error, at least try to show the original content
+    setPreviewHtml(currentHtml);
+    setPreviewLoading(false);
+  }
+};
 
   const applyChanges = () => {
     // Apply changes to the main editor
@@ -592,14 +720,21 @@ const generateFooterHTML = () => {
       
       {/* Preview section - shown for both tabs */}
       <div className="border rounded-md p-4 mb-4 bg-gray-50">
-        <Title level={5}>Preview</Title>
+        <Title level={5}>Preview Email with Background</Title>
         <div className="border rounded bg-white p-1 overflow-hidden" style={{height: '300px'}}>
-          <div className="h-full overflow-auto">
-            <div 
-              dangerouslySetInnerHTML={{ __html: previewHtml }} 
-              style={{ transform: 'scale(0.7)', transformOrigin: 'top left' }}
-            />
-          </div>
+          {previewLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+              <Text className="ml-2">Updating preview...</Text>
+            </div>
+          ) : (
+            <div className="h-full overflow-auto">
+              <div 
+                dangerouslySetInnerHTML={{ __html: previewHtml }} 
+                style={{ transform: 'scale(0.7)', transformOrigin: 'top left' }}
+              />
+            </div>
+          )}
         </div>
         <Text className="text-xs text-gray-500 block mt-2">
           This is a scaled preview. {templateId 
