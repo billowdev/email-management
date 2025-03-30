@@ -72,6 +72,8 @@ const EmailTemplateBackgroundEditor: React.FC<EmailTemplateBackgroundEditorProps
         .then(data => {
           if (data) {
             setHeaderFooterSettings(data);
+          } else {
+            console.log('No header/footer settings found, using defaults');
           }
           setHeaderFooterLoading(false);
         })
@@ -183,6 +185,115 @@ const EmailTemplateBackgroundEditor: React.FC<EmailTemplateBackgroundEditorProps
     }
   };
 
+  // Generate header HTML based on settings
+  const generateHeaderHTML = () => {
+    if (!headerFooterSettings || !headerFooterSettings.headerEnabled) {
+      // Default header if no settings available
+      return `<div style="color: #FFFFFF; font-size: 24px; font-weight: bold; line-height: 150%;">Email Header</div>`;
+    }
+
+    let headerHTML = '';
+    
+    // Add logo if available
+    if (headerFooterSettings.headerLogo) {
+      const logoAlignment = headerFooterSettings.headerLogoAlignment || 'center';
+      const logoWidth = headerFooterSettings.headerLogoWidth || 200;
+      
+      headerHTML += `<div style="text-align: ${logoAlignment}; margin-bottom: ${headerFooterSettings.headerContent ? '10px' : '0'};">
+        <img src="${headerFooterSettings.headerLogo}" alt="Logo" style="max-width: ${logoWidth}px; max-height: 80px;" />
+      </div>`;
+    }
+    
+    // Add header content if available
+    if (headerFooterSettings.headerContent) {
+      headerHTML += `<div style="
+        color: ${headerFooterSettings.headerTextColor || '#FFFFFF'}; 
+        font-size: 22px; 
+        font-weight: bold;
+        text-align: ${headerFooterSettings.headerLogo ? headerFooterSettings.headerLogoAlignment || 'center' : 'center'};
+      ">
+        ${headerFooterSettings.headerContent}
+      </div>`;
+    }
+    
+    return headerHTML || `<div style="color: #FFFFFF; font-size: 24px; font-weight: bold; line-height: 150%;">Email Header</div>`;
+  };
+
+  // Generate footer HTML based on settings
+  const generateFooterHTML = () => {
+    if (!headerFooterSettings || !headerFooterSettings.footerEnabled) {
+      // Default footer if no settings available
+      return `<div style="color: #FFFFFF; font-size: 16px; line-height: 150%;">© ${new Date().getFullYear()} Company Name. All rights reserved.</div>`;
+    }
+
+    let footerHTML = '';
+    
+    // Add footer content if available
+    if (headerFooterSettings.footerContent) {
+      footerHTML += `<div style="margin-bottom: 15px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
+        ${headerFooterSettings.footerContent}
+      </div>`;
+    }
+    
+    // Add social icons if enabled
+    if (headerFooterSettings.footerShowSocialIcons && headerFooterSettings.footerSocialLinks?.length > 0) {
+      footerHTML += '<div style="margin-bottom: 15px;">';
+      
+      headerFooterSettings.footerSocialLinks
+        .filter((link: any) => link.enabled)
+        .forEach((link: any) => {
+          footerHTML += `<span 
+            style="
+              display: inline-block; 
+              margin: 0 10px;
+              width: 24px;
+              height: 24px;
+              background-color: #FFFFFF;
+              border-radius: 50%;
+              text-align: center;
+              line-height: 24px;
+              color: #333333;
+              font-weight: bold;
+            "
+          >
+            ${link.platform.charAt(0).toUpperCase()}
+          </span>`;
+        });
+      
+      footerHTML += '</div>';
+    }
+    
+    // Add company address if enabled
+    if (headerFooterSettings.footerShowAddress && headerFooterSettings.footerAddress) {
+      footerHTML += `<div style="margin-bottom: 10px; font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
+        ${headerFooterSettings.footerAddress}
+      </div>`;
+    }
+    
+    // Add unsubscribe link if enabled
+    if (headerFooterSettings.footerShowUnsubscribe) {
+      footerHTML += `<div style="margin-bottom: 10px; font-size: 12px;">
+        <a href="${headerFooterSettings.footerUnsubscribeUrl || '#'}" 
+           style="color: ${headerFooterSettings.footerTextColor || '#FFFFFF'}; text-decoration: underline;">
+          ${headerFooterSettings.footerUnsubscribeText || 'Unsubscribe'}
+        </a>
+      </div>`;
+    }
+    
+    // Add copyright text
+    if (headerFooterSettings.footerCopyrightText) {
+      footerHTML += `<div style="font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
+        ${headerFooterSettings.footerCopyrightText}
+      </div>`;
+    } else {
+      footerHTML += `<div style="font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
+        © ${new Date().getFullYear()} Company Name. All rights reserved.
+      </div>`;
+    }
+    
+    return footerHTML;
+  };
+
   const updatePreview = async () => {
     try {
       // Create a DOM parser
@@ -211,20 +322,20 @@ const EmailTemplateBackgroundEditor: React.FC<EmailTemplateBackgroundEditorProps
         const innerContainer = doc.createElement('div');
         innerContainer.setAttribute('style', `max-width: ${settings.maxWidth}; margin: 0 auto; background-color: ${settings.containerBgColor};`);
         
-        // Create the header
+        // Create the header with dynamic content from settings
         const header = doc.createElement('div');
         header.setAttribute('style', `background-color: ${settings.headerBgColor}; padding: 24px 10px; text-align: center;`);
-        header.innerHTML = '<div style="color: #FFFFFF; font-size: 24px; font-weight: bold; line-height: 150%;">Email Header</div>';
+        header.innerHTML = generateHeaderHTML();
         
         // Create the content section
         const content = doc.createElement('div');
         content.setAttribute('style', `padding: 40px 20px; background-color: ${settings.contentBgColor};`);
         content.innerHTML = emailContent;
         
-        // Create the footer
+        // Create the footer with dynamic content from settings
         const footer = doc.createElement('div');
         footer.setAttribute('style', `background-color: ${settings.footerBgColor}; padding: 20px 10px; text-align: center;`);
-        footer.innerHTML = '<div style="color: #FFFFFF; font-size: 16px; line-height: 150%;">© 2025 Company Name. All rights reserved.</div>';
+        footer.innerHTML = generateFooterHTML();
         
         // Assemble the structure
         innerContainer.appendChild(header);
@@ -256,7 +367,13 @@ const EmailTemplateBackgroundEditor: React.FC<EmailTemplateBackgroundEditorProps
                 const sections = innerContainers[i].children;
                 if (sections.length > 0) {
                   // First section is usually the header
-                  (sections[0] as HTMLElement).style.backgroundColor = settings.headerBgColor;
+                  const headerSection = sections[0] as HTMLElement;
+                  headerSection.style.backgroundColor = settings.headerBgColor;
+                  
+                  // Update header content if we have settings
+                  if (headerFooterSettings && headerFooterSettings.headerEnabled) {
+                    headerSection.innerHTML = generateHeaderHTML();
+                  }
                   
                   // Middle section is usually the content
                   if (sections.length > 1) {
@@ -265,7 +382,13 @@ const EmailTemplateBackgroundEditor: React.FC<EmailTemplateBackgroundEditorProps
                   
                   // Last section is usually the footer
                   if (sections.length > 2) {
-                    (sections[sections.length - 1] as HTMLElement).style.backgroundColor = settings.footerBgColor;
+                    const footerSection = sections[sections.length - 1] as HTMLElement;
+                    footerSection.style.backgroundColor = settings.footerBgColor;
+                    
+                    // Update footer content if we have settings
+                    if (headerFooterSettings && headerFooterSettings.footerEnabled) {
+                      footerSection.innerHTML = generateFooterHTML();
+                    }
                   }
                 }
                 break;
@@ -278,8 +401,9 @@ const EmailTemplateBackgroundEditor: React.FC<EmailTemplateBackgroundEditorProps
       // Convert back to HTML string
       let updatedHtml = doc.documentElement.outerHTML;
       
-      // Apply header and footer if available
-      if (headerFooterSettings && templateId) {
+      // If we're not already applying our custom header/footer through the DOM manipulation above,
+      // then use the applyHeaderFooterToContent function for a more complete application
+      if ((!headerFooterSettings || !headerFooterSettings.headerEnabled) && templateId) {
         try {
           updatedHtml = await applyHeaderFooterToContent(templateId, updatedHtml, {});
         } catch (error) {
