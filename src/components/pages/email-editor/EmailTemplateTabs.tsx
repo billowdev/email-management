@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'antd';
 import type { TabsProps } from 'antd';
-import EmailTemplateEditor from '@/components/EmailTemplateEditor';
+import EmailTemplateEditor from '@/components/editor/EmailTemplateEditor';
 import EmailPreview from '../email-preview/EmailPreview';
 
 // Define types for the template, preview data, and components

@@ -1,6 +1,6 @@
 "use client"
 import { useState } from 'react'
-import EmailTemplateEditor from '@/components/EmailTemplateEditor'
+import EmailTemplateEditor from '@/components/editor/EmailTemplateEditor'
 import EmailPreview from '@/components/pages/email-preview/EmailPreview'
 import { defaultTemplates, defaultPreviewData, PreviewData } from '@/types/email-templates'
 import { Tabs } from 'antd'

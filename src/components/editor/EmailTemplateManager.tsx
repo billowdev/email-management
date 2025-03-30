@@ -15,8 +15,8 @@ import {
   TemplateVariable,
   updateVariable
 } from '@/services/emailTemplateService'
-import EmailTemplateEditor from '@/components/EmailTemplateEditor'
-import AddVariableComponent from '@/components/AddVariableComponent'
+import EmailTemplateEditor from '@/components/editor/EmailTemplateEditor'
+import AddVariableComponent from '@/components/editor/variables/AddVariableComponent'
 // Import Ant Design components
 import { 
   Typography, 
@@ -43,13 +43,13 @@ import {
   LoadingOutlined
 } from '@ant-design/icons'
 import { Header } from 'antd/es/layout/layout'
-import ExportOptionsComponent from '@/components/editor/ExportOptionsComponent';
+import ExportOptionsComponent from '@/components/editor/sections/ExportOptionsComponent';
 import { 
   exportRawTemplate, 
   exportTemplateWithData, 
   exportVariableSchema 
 } from '@/services/exportService';
-import LoaderComponent from './LoaderComponent'
+import LoaderComponent from '../LoaderComponent'
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;

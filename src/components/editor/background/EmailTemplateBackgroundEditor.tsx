@@ -1,3 +1,4 @@
+// src/components/EmailTemplateBackgroundEditor.tsx
 "use client"
 import React, { useState, useEffect } from 'react';
 import { Card, Typography, Tabs, Space, Collapse, ColorPicker, Input, Button, message, Spin } from 'antd';
@@ -15,8 +16,8 @@ import {
 import { BackgroundSettings, DEFAULT_BACKGROUND_SETTINGS } from '@/types/email-templates';
 import { getTemplateBackground, saveTemplateBackground } from '@/services/emailBackgroundService';
 import { getTemplateHeaderFooter, updateTemplateHeaderFooter, applyHeaderFooterToContent } from '@/services/emailTemplateService';
-import LoaderComponent from './LoaderComponent';
-import EmailHeaderFooterComponent from './EmailHeaderFooterComponent';
+import EmailHeaderFooterComponent from '../header-footer/EmailHeaderFooterComponent';
+import LoaderComponent from '@/components/LoaderComponent';
 
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
@@ -335,13 +336,29 @@ const updatePreview = async () => {
       const innerContainer = doc.createElement('div');
       innerContainer.setAttribute('style', `max-width: ${settings.maxWidth}; margin: 0 auto; background-color: ${settings.containerBgColor};`);
       
-      // Create the content section - DON'T add default header/footer
+      // Create the header if we have header settings
+      if (headerFooterSettings && headerFooterSettings.headerEnabled) {
+        const header = doc.createElement('div');
+        header.setAttribute('style', `background-color: ${settings.headerBgColor}; padding: 24px 10px; text-align: center;`);
+        header.innerHTML = generateHeaderHTML();
+        innerContainer.appendChild(header);
+      }
+      
+      // Create the content section
       const content = doc.createElement('div');
       content.setAttribute('style', `padding: 40px 20px; background-color: ${settings.contentBgColor};`);
       content.innerHTML = contentHtml; // Use the preserved content
-      
-      // Assemble the structure - without default header/footer
       innerContainer.appendChild(content);
+      
+      // Create the footer if we have footer settings
+      if (headerFooterSettings && headerFooterSettings.footerEnabled) {
+        const footer = doc.createElement('div');
+        footer.setAttribute('style', `background-color: ${settings.footerBgColor}; padding: 20px 10px; text-align: center;`);
+        footer.innerHTML = generateFooterHTML();
+        innerContainer.appendChild(footer);
+      }
+      
+      // Assemble the structure
       outerContainer.appendChild(innerContainer);
       doc.body.appendChild(outerContainer);
     } else {

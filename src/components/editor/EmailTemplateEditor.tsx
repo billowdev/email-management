@@ -19,12 +19,12 @@ import {
   deleteVariable, 
   updatePreviewData 
 } from '@/services/emailTemplateService';
-import ExportOptionsComponent from '@/components/editor/ExportOptionsComponent';
+import ExportOptionsComponent from '@/components/editor/sections/ExportOptionsComponent';
 
-import ImageUploadComponent from '@/components/editor/ImageUploadComponent';
-import EmailSectionsComponent from '@/components/editor/EmailSectionsComponent';
-import EmailTableComponent from '@/components/editor/EmailTableComponent';
-import SocialLinksComponent from '@/components/editor/SocialLinksComponent';
+import ImageUploadComponent from '@/components/editor/sections/ImageUploadComponent';
+import EmailSectionsComponent from '@/components/editor/sections/EmailSectionsComponent';
+import EmailTableComponent from '@/components/editor/sections/EmailTableComponent';
+import SocialLinksComponent from '@/components/editor/sections/SocialLinksComponent';
 
 // Import Ant Design components
 import { Button, Select, Tooltip, Divider, Input, Card, Typography, Space, Tabs, Modal, Form, message } from 'antd'
@@ -46,9 +46,9 @@ import {
   EditOutlined,
   BgColorsOutlined
 } from '@ant-design/icons'
-import VariableTabs from './VariableTabsComponent'
-import AddVariableComponent from './AddVariableComponent'
-import EmailTemplateBackgroundEditor from './EmailTemplateBackgroundEditor'
+import VariableTabs from './variables/VariableTabsComponent'
+import AddVariableComponent from './variables/AddVariableComponent'
+import EmailTemplateBackgroundEditor from './background/EmailTemplateBackgroundEditor'
 import TableRow from '@tiptap/extension-table-row'
 import TableHeader from '@tiptap/extension-table-header'
 import TableCell from '@tiptap/extension-table-cell'

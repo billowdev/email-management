@@ -15,7 +15,7 @@
 
 "use client"
 import { useState } from 'react'
-import EmailTemplateManager from '@/components/EmailTemplateManager'
+import EmailTemplateManager from '@/components/editor/EmailTemplateManager'
 import { ConfigProvider } from "antd"
 import { EmailTemplateWithRelations } from '@/services/emailTemplateService'
 
