@@ -1,65 +1,69 @@
-# Email Template Management System
+# Email Management System - Development Guide
 
-A comprehensive system for creating, editing, and managing dynamic email templates with variable support, built with Next.js, React, TipTap rich text editor, and Prisma ORM.
+A sophisticated email template management system with rich features for creating, editing, and managing dynamic email templates. Built with Next.js, React, TipTap rich text editor, and Prisma ORM with PostgreSQL.
 
-## Features
+## 🌟 Key Features
 
-- 🖋 Rich text editor with TipTap for email template creation
-- 🔄 Dynamic template variables with preview functionality
-- 🎨 Email layout and styling customization
-- 📊 Table support for data-rich emails
-- 🔗 Social media integration
-- 📱 Email preview with responsive design testing
-- 💾 PostgreSQL database storage with Prisma ORM
-- 🧩 Variable management (add, edit, delete)
-- 📤 Export options (HTML, template with variables)
-- 📂 Template organization with folders
+- **Rich Text Editing**: Advanced WYSIWYG editor powered by TipTap with comprehensive formatting options
+- **Dynamic Variables**: Insert and manage template variables with live preview functionality
+- **Responsive Design Testing**: Preview emails in desktop and mobile views
+- **Email Components**: Ready-made components for tables, social links, and structured sections
+- **Content Management**: Create, save, edit, and organize templates with folder organization
+- **Background & Layout Editor**: Customize email structure with visual background editor
+- **Header & Footer Management**: Consistent branding with reusable headers and footers
+- **Export Options**: Multiple export formats including HTML and variable schemas
+- **Database Integration**: PostgreSQL with Prisma ORM for reliable storage and retrieval
 
-## Tech Stack
+## 🛠️ Technology Stack
 
-- **Frontend**: Next.js, React, Ant Design
-- **Rich Text Editing**: TipTap
-- **Database ORM**: Prisma
+- **Frontend Framework**: Next.js 15 with App Router
+- **UI Library**: React 19
+- **Component Library**: Ant Design
+- **Rich Text Editor**: TipTap with custom extensions
+- **Styling**: TailwindCSS 4
+- **Database ORM**: Prisma 6
 - **Database**: PostgreSQL
-- **UI Components**: Ant Design
-- **Styling**: Tailwind CSS
+- **State Management**: React Hooks (useState, useEffect, useCallback)
+- **TypeScript**: Type-safe development throughout the application
 
-## Prerequisites
+## 📋 Prerequisites
 
-- Node.js (v18 or higher)
-- PostgreSQL database
-- Yarn or npm
+- Node.js (v18.0.0 or higher)
+- PostgreSQL database server (v14 or higher)
+- npm or yarn
 
-## Installation
+## 🚀 Getting Started
+
+### Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/billowdev/email-management
-   cd email-template-management
+   git clone https://github.com/yourusername/email-management.git
+   cd email-management
    ```
 
 2. Install dependencies:
    ```bash
-   yarn install
-   # or
    npm install
+   # or
+   yarn install
    ```
 
-3. Configure the database:
-   - Create a `.env` file in the root directory
-   - Add your PostgreSQL connection string:
-     ```
-     DATABASE_URL="postgresql://username:password@localhost:5432/email_templates"
-     ```
+3. Set up environment variables:
+   ```bash
+   # Copy the sample env file and update with your database credentials
+   cp env-sample .env
+   ```
 
-4. Initialize Prisma:
+4. Configure your database connection in `.env`:
+   ```
+   DATABASE_URL="postgresql://username:password@localhost:5432/email_management?schema=public"
+   ```
+
+5. Generate Prisma client and run migrations:
    ```bash
    npx prisma generate
-   ```
-
-5. Run migrations:
-   ```bash
-   npx prisma migrate dev --name init
+   npx prisma migrate dev
    ```
 
 6. Seed the database with initial data:
@@ -76,181 +80,196 @@ A comprehensive system for creating, editing, and managing dynamic email templat
    yarn dev
    ```
 
-8. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+8. Access the application at `http://localhost:3000`
 
-## Database Schema
+## 🏗️ Project Structure
+
+```
+email-management/
+├── prisma/                   # Prisma schema and migrations 
+│   ├── schema.prisma         # Database schema definition
+│   ├── migrations/           # Database migrations
+│   └── seed.ts               # Database seeding script
+├── src/
+│   ├── app/                  # Next.js app router pages
+│   │   ├── api/              # API routes for templates, variables, etc.
+│   │   ├── page.tsx          # Main page (template editor)
+│   │   └── email-preview/    # Email preview page
+│   ├── components/           # React components
+│   │   ├── editor/           # Template editor components
+│   │   │   ├── sections/     # Email section components (tables, social links)
+│   │   │   ├── variables/    # Variable management components
+│   │   │   ├── background/   # Background editor components
+│   │   │   └── header-footer/# Header and footer components
+│   │   └── pages/            # Page-level components
+│   ├── lib/                  # Utility libraries
+│   │   └── prisma.ts         # Prisma client setup
+│   ├── services/             # Business logic and API services
+│   │   ├── emailTemplateService.ts   # Template-related services
+│   │   ├── emailBackgroundService.ts # Background-related services
+│   │   └── exportService.ts          # Export functionality
+│   └── types/                # TypeScript type definitions
+│       ├── email-templates.ts # Email template related types
+│       └── prisma.ts          # Prisma-related type extensions
+└── next.config.ts            # Next.js configuration
+```
+
+## 🧩 Core Components Overview
+
+### EmailTemplateManager (`src/components/editor/EmailTemplateManager.tsx`)
+The main dashboard for managing templates. Handles template selection, creation, saving, and deletion.
+
+### EmailTemplateEditor (`src/components/editor/EmailTemplateEditor.tsx`)
+The primary editor component integrating TipTap for rich text editing and providing various tools for template customization.
+
+### EmailPreview (`src/components/pages/email-preview/EmailPreview.tsx`)
+Renders the email template with variables replaced and allows for testing with different screen sizes.
+
+### EmailTemplateBackgroundEditor (`src/components/editor/background/EmailTemplateBackgroundEditor.tsx`)
+Controls the layout, backgrounds, and structure of the email template.
+
+### EmailTableComponent (`src/components/editor/sections/EmailTableComponent.tsx`)
+Creates and manages email-compatible tables with customization options.
+
+### SocialLinksComponent (`src/components/editor/sections/SocialLinksComponent.tsx`)
+Inserts and configures social media links with various styling options.
+
+### EmailSectionsComponent (`src/components/editor/sections/EmailSectionsComponent.tsx`)
+Inserts pre-designed sections like buttons, dividers, headers, and spacers.
+
+## 📊 Database Schema
 
 The application uses a PostgreSQL database with the following key models:
 
 ### EmailTemplate
 Stores the email template information, content, and relationships.
-```prisma
-model EmailTemplate {
-  id              String            @id @default(uuid())
-  name            String
-  description     String?
-  defaultContent  String            @db.Text
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  userId          String?
-  user            User?             @relation(fields: [userId], references: [id])
-  isSystem        Boolean           @default(false)
-  variables       TemplateVariable[]
-  previewData     PreviewData[]
-  templateFolder  TemplateFolder?   @relation(fields: [foldererId], references: [id])
-  foldererId      String?
-  background      EmailTemplateBackground?
-}
-```
 
 ### TemplateVariable
 Defines the variables that can be used within a template.
-```prisma
-model TemplateVariable {
-  id              String          @id @default(uuid())
-  key             String
-  name            String
-  type            VariableType    @default(TEXT)
-  defaultValue    String?
-  description     String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  required        Boolean         @default(false)
-  emailTemplate   EmailTemplate   @relation(fields: [emailTemplateId], references: [id], onDelete: Cascade)
-  emailTemplateId String
-
-  @@unique([emailTemplateId, key])
-}
-```
 
 ### PreviewData
 Stores sample data for template previews.
-```prisma
-model PreviewData {
-  id              String        @id @default(uuid())
-  name            String
-  data            Json          @db.JsonB
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  emailTemplate   EmailTemplate @relation(fields: [emailTemplateId], references: [id], onDelete: Cascade)
-  emailTemplateId String
 
-  @@index([emailTemplateId])
-}
-```
+### EmailTemplateBackground
+Stores styling information for the email template.
 
-### Additional Models
-- `EmailTemplateBackground`: Stores styling information for the email template.
-- `TemplateFolder`: For organizing templates into folders.
-- `SavedEmailTemplate`: Stores templates with populated variables.
-- `SentEmail`: Tracks sent emails for analytics.
-- `User`: User accounts for the system.
+### EmailTemplateHeaderFooter
+Stores header and footer settings for email templates.
 
-## TipTap Editor Configuration
+See `prisma/schema.prisma` for the complete database schema.
 
-The TipTap editor is configured with extensions for rich email creation:
+## 👩‍💻 Development Workflow
 
-```javascript
-const editor = useEditor({
-  extensions: [
-    StarterKit,
-    TextAlign.configure({
-      types: ['heading', 'paragraph'],
-    }),
-    Placeholder.configure({
-      placeholder: 'Type your email template here...',
-    }),
-    Link.configure({
-      openOnClick: false,
-    }),
-    Image,
-    Table.configure({
-      resizable: false,
-    }),
-    TableRow,
-    TableHeader,
-    TableCell,
-    TextStyle,
-    Color,
-    Variable, // Custom extension for handling variables
-  ],
-  content: initialContent,
-  // Additional configuration...
-})
-```
+### Working with Templates
 
-## API Routes
+1. **Creating a Template**:
+   - Use the template creation form at the top of the main page
+   - Default variables like `firstName`, `lastName`, and `email` are automatically added
 
-### Templates
-- `GET /api/templates` - Get all templates
-- `POST /api/templates` - Create a new template
-- `GET /api/templates/:id` - Get template by ID
-- `PUT /api/templates/:id` - Update template
-- `DELETE /api/templates/:id` - Delete template
+2. **Editing Content**:
+   - Use the rich text editor with the toolbar for formatting
+   - Insert variables using the variable panel on the right
+   - Add special components like tables and social links using the toolbar
 
-### Variables
-- `GET /api/templates/:id/variables` - Get all variables for a template
-- `POST /api/templates/:id/variables` - Add a variable to a template
-- `PUT /api/templates/:id/variables/:variableId` - Update a variable
-- `DELETE /api/templates/:id/variables/:variableId` - Delete a variable
+3. **Adding Variables**:
+   - Click "Add New Variable" in the variable panel
+   - Variables are automatically available in the editor as `{{.variableName}}`
 
-### Preview Data
-- `GET /api/templates/:id/preview` - Get preview data for a template
-- `PUT /api/templates/:id/preview` - Update preview data
+4. **Customizing Layout**:
+   - Switch to the "Preview & Layout" tab
+   - Adjust background colors, container widths, and spacing
+   - Configure headers and footers with logos, text, and styling
 
-### Background Settings
-- `GET /api/templates/:id/background` - Get background settings
-- `PUT /api/templates/:id/background` - Update background settings
+5. **Testing Templates**:
+   - Use "Preview Mode" to see how the template looks with variables filled in
+   - Click "Full Page Preview" for a dedicated preview page
+   - Test responsive behavior using the mobile/desktop toggle
 
-## Components Overview
+6. **Exporting Templates**:
+   - Use the Export dropdown to export in various formats
+   - Options include complete template, content only, or variables schema
 
-### Core Components
-- `EmailTemplateEditor`: Main rich text editor component for email content
-- `EmailTemplateManager`: Dashboard for managing templates
-- `AddVariableComponent`: Interface for adding variables to templates
-- `VariableTabs`: Management for template variables and preview data
-- `EmailTemplateBackgroundEditor`: Editor for email background and structure
+### API Development
 
-### Advanced Components
-- `ImageUploadComponent`: Image handling for email templates
-- `EmailSectionsComponent`: Add pre-designed sections to emails
-- `EmailTableComponent`: Table creation for emails
-- `SocialLinksComponent`: Social media links integration
-- `ExportOptionsComponent`: Export functionality for templates
+Use the API endpoints in `src/app/api/` to:
+- Create, read, update, and delete templates
+- Manage template variables
+- Save and retrieve background and header/footer settings
 
-## Deployment
+When developing new features, follow these patterns to maintain consistency.
 
-This application can be deployed to platforms like Vercel, Netlify, or any Node.js hosting provider. Make sure to:
+## 🧪 Adding New Features
 
-1. Set up your PostgreSQL database.
-2. Configure environment variables for database connection.
-3. Run migrations on the production database before deployment.
+### Adding a New Email Component
 
-## Development Workflow
+1. Create a new component in `src/components/editor/sections/`:
+   ```tsx
+   // src/components/editor/sections/NewComponent.tsx
+   import React from 'react';
+   import { Editor } from '@tiptap/react';
+   import { Button } from 'antd';
 
-1. **Database Schema Changes**:
-   - Modify the Prisma schema in `prisma/schema.prisma`
-   - Run `npx prisma migrate dev --name description` to create migrations
-   - Apply migrations with `npx prisma migrate deploy`
+   interface NewComponentProps {
+     editor: Editor | null;
+   }
 
-2. **API Endpoints**:
-   - Create or modify API routes in `src/app/api/**/*.ts`
+   const NewComponent: React.FC<NewComponentProps> = ({ editor }) => {
+     const insertContent = () => {
+       if (!editor) return;
+       editor.chain().focus().insertContent('<div>New component content</div>').run();
+     };
 
-3. **UI Components**:
-   - Component development in `/components` directory
-   - Page development in `/app` directory
+     return <Button onClick={insertContent}>Insert New Component</Button>;
+   };
 
-4. **Email Templates**:
-   - Custom email components in `/components/editor`
+   export default NewComponent;
+   ```
 
-## License
+2. Add the component to the EmailTemplateEditor toolbar.
+
+### Adding a New Template Variable Type
+
+1. Update the `VariableType` enum in `prisma/schema.prisma`
+2. Generate and run a migration
+3. Update the variable type options in the variable creation/edit components
+
+## 📝 Contributing Guidelines
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Make your changes
+4. Run linting and ensure all checks pass
+5. Commit your changes with descriptive messages
+6. Push to your fork and submit a pull request
+
+## 🔍 Troubleshooting
+
+### Database Connection Issues
+- Verify your PostgreSQL server is running
+- Check your connection string in the `.env` file
+- Run `npx prisma db push` to sync the schema
+
+### Editor Loading Problems
+- Check browser console for errors
+- Verify TipTap extensions are properly configured
+- Ensure your Node.js version is compatible
+
+### Export Functionality Issues
+- Check for syntax errors in the export service
+- Verify the template HTML structure
+- Test with different browser environments
+
+## 📚 Additional Resources
+
+- [TipTap Documentation](https://tiptap.dev/docs)
+- [Prisma Documentation](https://www.prisma.io/docs)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Ant Design Documentation](https://ant.design/components/overview/)
+
+## 📄 License
 
 [MIT](LICENSE)
 
-## Contributing
+---
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+For questions or support, please open an issue on the repository.
