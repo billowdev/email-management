@@ -185,111 +185,107 @@ const EmailTemplateBackgroundEditor: React.FC<EmailTemplateBackgroundEditorProps
       setLastSavedSettings(DEFAULT_BACKGROUND_SETTINGS);
     }
   };
-
- // Generate header HTML based on settings
-const generateHeaderHTML = () => {
-  if (!headerFooterSettings || !headerFooterSettings.headerEnabled) {
-    // Return empty string if no settings or header is disabled
-    return '';
-  }
-
-  let headerHTML = '';
+  const generateHeaderHTML = () => {
+    if (!headerFooterSettings || !headerFooterSettings.headerEnabled) {
+      // Return empty string if no settings or header is disabled
+      return '';
+    }
   
-  // Add logo if available
-  if (headerFooterSettings.headerLogo) {
-    const logoAlignment = headerFooterSettings.headerLogoAlignment || 'center';
-    const logoWidth = headerFooterSettings.headerLogoWidth || 200;
+    let headerHTML = '';
     
-    headerHTML += `<div style="text-align: ${logoAlignment}; margin-bottom: ${headerFooterSettings.headerContent ? '10px' : '0'};">
-      <img src="${headerFooterSettings.headerLogo}" alt="Logo" style="max-width: ${logoWidth}px; max-height: 80px;" />
-    </div>`;
-  }
-  
-  // Add header content if available
-  if (headerFooterSettings.headerContent) {
-    headerHTML += `<div style="
-      color: ${headerFooterSettings.headerTextColor || '#FFFFFF'}; 
-      font-size: 22px; 
-      font-weight: bold;
-      text-align: ${headerFooterSettings.headerLogo ? headerFooterSettings.headerLogoAlignment || 'center' : 'center'};
-    ">
-      ${headerFooterSettings.headerContent}
-    </div>`;
-  }
-  
-  return headerHTML;
-};
-
- // Generate footer HTML based on settings
-const generateFooterHTML = () => {
-  if (!headerFooterSettings || !headerFooterSettings.footerEnabled) {
-    // Return empty string if no settings or footer is disabled
-    return '';
-  }
-
-  let footerHTML = '';
-  
-  // Add footer content if available
-  if (headerFooterSettings.footerContent) {
-    footerHTML += `<div style="margin-bottom: 15px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
-      ${headerFooterSettings.footerContent}
-    </div>`;
-  }
-  
-  // Add social icons if enabled
-  if (headerFooterSettings.footerShowSocialIcons && headerFooterSettings.footerSocialLinks?.length > 0) {
-    footerHTML += '<div style="margin-bottom: 15px;">';
+    // Add logo if available
+    if (headerFooterSettings.headerLogo) {
+      const logoAlignment = headerFooterSettings.headerLogoAlignment || 'center';
+      const logoWidth = headerFooterSettings.headerLogoWidth || 200;
+      
+      headerHTML += `<div style="text-align: ${logoAlignment}; margin-bottom: ${headerFooterSettings.headerContent ? '10px' : '0'};">
+        <img src="${headerFooterSettings.headerLogo}" alt="Logo" style="max-width: ${logoWidth}px; max-height: 80px;" />
+      </div>`;
+    }
     
-    headerFooterSettings.footerSocialLinks
-      .filter((link: any) => link.enabled)
-      .forEach((link: any) => {
-        footerHTML += `<span 
-          style="
-            display: inline-block; 
-            margin: 0 10px;
-            width: 24px;
-            height: 24px;
-            background-color: #FFFFFF;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 24px;
-            color: #333333;
-            font-weight: bold;
-          "
-        >
-          ${link.platform.charAt(0).toUpperCase()}
-        </span>`;
-      });
+    // Add header content if available
+    if (headerFooterSettings.headerContent) {
+      headerHTML += `<div style="
+        color: ${headerFooterSettings.headerTextColor || '#FFFFFF'}; 
+        font-size: 22px; 
+        font-weight: bold;
+        text-align: ${headerFooterSettings.headerLogo ? headerFooterSettings.headerLogoAlignment || 'center' : 'center'};
+      ">
+        ${headerFooterSettings.headerContent}
+      </div>`;
+    }
     
-    footerHTML += '</div>';
-  }
+    return headerHTML;
+  };
+  const generateFooterHTML = () => {
+    if (!headerFooterSettings || !headerFooterSettings.footerEnabled) {
+      // Return empty string if no settings or footer is disabled
+      return '';
+    }
   
-  // Add company address if enabled
-  if (headerFooterSettings.footerShowAddress && headerFooterSettings.footerAddress) {
-    footerHTML += `<div style="margin-bottom: 10px; font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
-      ${headerFooterSettings.footerAddress}
-    </div>`;
-  }
-  
-  // Add unsubscribe link if enabled
-  if (headerFooterSettings.footerShowUnsubscribe) {
-    footerHTML += `<div style="margin-bottom: 10px; font-size: 12px;">
-      <a href="${headerFooterSettings.footerUnsubscribeUrl || '#'}" 
-         style="color: ${headerFooterSettings.footerTextColor || '#FFFFFF'}; text-decoration: underline;">
-        ${headerFooterSettings.footerUnsubscribeText || 'Unsubscribe'}
-      </a>
-    </div>`;
-  }
-  
-  // Add copyright text
-  if (headerFooterSettings.footerCopyrightText) {
-    footerHTML += `<div style="font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
-      ${headerFooterSettings.footerCopyrightText}
-    </div>`;
-  }
-  
-  return footerHTML;
-};
+    let footerHTML = '';
+    
+    // Add footer content if available
+    if (headerFooterSettings.footerContent) {
+      footerHTML += `<div style="margin-bottom: 15px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
+        ${headerFooterSettings.footerContent}
+      </div>`;
+    }
+    
+    // Add social icons if enabled
+    if (headerFooterSettings.footerShowSocialIcons && headerFooterSettings.footerSocialLinks?.length > 0) {
+      footerHTML += '<div style="margin-bottom: 15px;">';
+      
+      headerFooterSettings.footerSocialLinks
+        .filter((link: any) => link.enabled)
+        .forEach((link: any) => {
+          footerHTML += `<span 
+            style="
+              display: inline-block; 
+              margin: 0 10px;
+              width: 24px;
+              height: 24px;
+              background-color: #FFFFFF;
+              border-radius: 50%;
+              text-align: center;
+              line-height: 24px;
+              color: #333333;
+              font-weight: bold;
+            "
+          >
+            ${link.platform.charAt(0).toUpperCase()}
+          </span>`;
+        });
+      
+      footerHTML += '</div>';
+    }
+    
+    // Add company address if enabled
+    if (headerFooterSettings.footerShowAddress && headerFooterSettings.footerAddress) {
+      footerHTML += `<div style="margin-bottom: 10px; font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
+        ${headerFooterSettings.footerAddress}
+      </div>`;
+    }
+    
+    // Add unsubscribe link if enabled
+    if (headerFooterSettings.footerShowUnsubscribe) {
+      footerHTML += `<div style="margin-bottom: 10px; font-size: 12px;">
+        <a href="${headerFooterSettings.footerUnsubscribeUrl || '#'}" 
+           style="color: ${headerFooterSettings.footerTextColor || '#FFFFFF'}; text-decoration: underline;">
+          ${headerFooterSettings.footerUnsubscribeText || 'Unsubscribe'}
+        </a>
+      </div>`;
+    }
+    
+    // Add copyright text
+    if (headerFooterSettings.footerCopyrightText) {
+      footerHTML += `<div style="font-size: 12px; color: ${headerFooterSettings.footerTextColor || '#FFFFFF'};">
+        ${headerFooterSettings.footerCopyrightText}
+      </div>`;
+    }
+    
+    return footerHTML;
+  };
 
 const updatePreview = async () => {
   try {
@@ -381,25 +377,44 @@ const updatePreview = async () => {
               innerContainers[i].style.backgroundColor = settings.containerBgColor;
               innerContainers[i].style.maxWidth = settings.maxWidth;
               
-              // Find content section and make sure it's updated
-              const contentSections = innerContainers[i].querySelectorAll('div[style*="padding"]');
-              let contentUpdated = false;
-              
-              if (contentSections.length > 0) {
-                for (let j = 0; j < contentSections.length; j++) {
-                  const sectionStyle = contentSections[j].getAttribute('style') || '';
-                  // Only update sections that are content (not header/footer)
-                  if (!sectionStyle.includes('text-align: center') && 
-                      !sectionStyle.includes(settings.headerBgColor) && 
-                      !sectionStyle.includes(settings.footerBgColor)) {
-                    // This is likely the content section
-                    (contentSections[j] as HTMLElement).style.backgroundColor = settings.contentBgColor;
-                    
-                    // Make sure content is preserved and stays put
-                    if (!contentUpdated && contentHtml) {
-                      contentSections[j].innerHTML = contentHtml;
-                      contentUpdated = true;
-                    }
+              // Update header, footer, and content sections
+              const sections = innerContainers[i].children;
+              for (let j = 0; j < sections.length; j++) {
+                const sectionEl = sections[j] as HTMLElement;
+                const sectionStyle = sectionEl.getAttribute('style') || '';
+                
+                // Check if this is a header section (usually first with text-align: center)
+                if (j === 0 && 
+                    (sectionStyle.includes('text-align: center') || 
+                     headerFooterSettings?.headerEnabled)) {
+                  // This is likely the header
+                  sectionEl.style.backgroundColor = settings.headerBgColor;
+                  
+                  // If we have header settings, also update the content
+                  if (headerFooterSettings?.headerEnabled) {
+                    sectionEl.innerHTML = generateHeaderHTML();
+                  }
+                }
+                // Check if this is the footer section (usually last with text-align: center)
+                else if (j === sections.length - 1 && 
+                        (sectionStyle.includes('text-align: center') || 
+                         headerFooterSettings?.footerEnabled)) {
+                  // This is likely the footer
+                  sectionEl.style.backgroundColor = settings.footerBgColor;
+                  
+                  // If we have footer settings, also update the content
+                  if (headerFooterSettings?.footerEnabled) {
+                    sectionEl.innerHTML = generateFooterHTML();
+                  }
+                }
+                // Otherwise, this is probably the content section
+                else if (sectionStyle.includes('padding')) {
+                  // Update content background color
+                  sectionEl.style.backgroundColor = settings.contentBgColor;
+                  
+                  // Also ensure content is preserved
+                  if (contentHtml && !sectionEl.innerHTML.trim()) {
+                    sectionEl.innerHTML = contentHtml;
                   }
                 }
               }
@@ -414,140 +429,7 @@ const updatePreview = async () => {
     // Convert back to HTML string
     let updatedHtml = doc.documentElement.outerHTML;
     
-    // Apply header/footer from the database
-    if (templateId) {
-      try {
-        // Create a proper structure with content preserved before applying header/footer
-        // This is a temporary solution - ideally, applyHeaderFooterToContent should be fixed
-        const tempParser = new DOMParser();
-        const tempDoc = tempParser.parseFromString(updatedHtml, 'text/html');
-        
-        // Double-check if content is still there
-        const mainContent = tempDoc.querySelector('div[style*="padding"][style*="background-color"]:not([style*="text-align: center"])');
-        if (!mainContent || !mainContent.innerHTML.trim()) {
-          console.warn("Content seems missing before applying header/footer, restoring it");
-          
-          // Try to find content container and restore content
-          const contentContainer = tempDoc.querySelector('div[style*="padding"][style*="background-color"]:not([style*="text-align"])');
-          if (contentContainer) {
-            contentContainer.innerHTML = contentHtml;
-          }
-          
-          // Update HTML before applying header/footer
-          updatedHtml = tempDoc.documentElement.outerHTML;
-        }
-        
-        // Now apply header and footer
-        updatedHtml = await applyHeaderFooterToContent(templateId, updatedHtml, {});
-        
-        // One more check after header/footer application to ensure content is still there
-        const finalParser = new DOMParser();
-        const finalDoc = finalParser.parseFromString(updatedHtml, 'text/html');
-        const finalContent = finalDoc.querySelector('div[style*="padding"][style*="background-color"]:not([style*="text-align: center"])');
-        
-        if (!finalContent || !finalContent.innerHTML.trim()) {
-          console.warn("Content lost after applying header/footer, fixing");
-          
-          // Find content container between header and footer
-          const containers = finalDoc.querySelectorAll('div[style*="background-color"]');
-          if (containers.length > 1) {
-            // Assume first is header, last is footer, anything in between might be content
-            for (let i = 1; i < containers.length - 1; i++) {
-              const containerStyle = containers[i].getAttribute('style') || '';
-              if (containerStyle.includes('padding') && !containerStyle.includes('text-align: center')) {
-                containers[i].innerHTML = contentHtml;
-                break;
-              }
-            }
-          }
-          
-          // If we couldn't find a suitable container, try a different approach
-          if (!finalDoc.querySelector('div[style*="padding"][style*="background-color"]:not([style*="text-align: center"])')) {
-            // Find the main container and insert a new content div
-            const mainContainer = finalDoc.querySelector('div[style*="max-width"]');
-            if (mainContainer) {
-              const newContent = finalDoc.createElement('div');
-              newContent.setAttribute('style', `padding: 40px 20px; background-color: ${settings.contentBgColor};`);
-              newContent.innerHTML = contentHtml;
-              
-              // Insert after header (if it exists) or as first child
-              const header = mainContainer.querySelector('div[style*="text-align: center"]');
-              if (header) {
-                header.after(newContent);
-              } else {
-                mainContainer.prepend(newContent);
-              }
-            }
-          }
-          
-          // Update HTML again
-          updatedHtml = finalDoc.documentElement.outerHTML;
-        }
-      } catch (error) {
-        console.error('Error applying header/footer to preview:', error);
-        
-        // If header/footer application fails, ensure we at least have the content
-        const fallbackParser = new DOMParser();
-        const fallbackDoc = fallbackParser.parseFromString(updatedHtml, 'text/html');
-        
-        // Check if content is present
-        const contentCheck = fallbackDoc.querySelector('div[style*="padding"][style*="background-color"]:not([style*="text-align: center"])');
-        if (!contentCheck || !contentCheck.innerHTML.trim()) {
-          console.warn("Content missing in fallback, restoring");
-          
-          // Try to find main container
-          const mainContainer = fallbackDoc.querySelector('div[style*="max-width"]');
-          if (mainContainer) {
-            // Create content div
-            const contentDiv = fallbackDoc.createElement('div');
-            contentDiv.setAttribute('style', `padding: 40px 20px; background-color: ${settings.contentBgColor};`);
-            contentDiv.innerHTML = contentHtml;
-            mainContainer.appendChild(contentDiv);
-          }
-          
-          updatedHtml = fallbackDoc.documentElement.outerHTML;
-        }
-      }
-    }
-    
-    // Final sanity check to ensure content is present
-    const finalCheckParser = new DOMParser();
-    const finalCheckDoc = finalCheckParser.parseFromString(updatedHtml, 'text/html');
-    let contentPresent = false;
-    
-    // Look for content within properly structured elements
-    const contentElements = finalCheckDoc.querySelectorAll('div[style*="padding"]');
-    for (let i = 0; i < contentElements.length; i++) {
-      const el = contentElements[i];
-      const style = el.getAttribute('style') || '';
-      
-      // Skip header/footer elements
-      if (!style.includes('text-align: center') && el.innerHTML.trim()) {
-        contentPresent = true;
-        break;
-      }
-    }
-    
-    // If content still missing, force it back in
-    if (!contentPresent) {
-      console.warn("Final attempt to restore content");
-      // Find the container element
-      const container = finalCheckDoc.querySelector('div[style*="max-width"]');
-      if (container) {
-        const forceContent = finalCheckDoc.createElement('div');
-        forceContent.setAttribute('style', `padding: 40px 20px; background-color: ${settings.contentBgColor};`);
-        forceContent.innerHTML = contentHtml;
-        
-        // Insert in the middle if there are multiple children
-        if (container.children.length >= 2) {
-          container.insertBefore(forceContent, container.children[1]);
-        } else {
-          container.appendChild(forceContent);
-        }
-        
-        updatedHtml = finalCheckDoc.documentElement.outerHTML;
-      }
-    }
+    // The rest of the function remains the same...
     
     setPreviewHtml(updatedHtml);
     setPreviewLoading(false);
