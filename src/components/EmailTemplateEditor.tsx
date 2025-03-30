@@ -1,3 +1,5 @@
+// Modified version of EmailTemplateEditor.tsx with key prop to force re-render
+
 "use client"
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
@@ -9,7 +11,7 @@ import Color from '@tiptap/extension-color'
 import TextStyle from '@tiptap/extension-text-style'
 import { useState, useEffect, useCallback } from 'react'
 import { Node } from '@tiptap/core'
-import { PreviewData,TemplateVariable  } from '@/types/email-templates'
+import { PreviewData, TemplateVariable } from '@/types/email-templates'
 import { 
   getVariablesByTemplateId, 
   addVariable, 
@@ -152,6 +154,13 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     },
   })
 
+  // Reset editor content when templateId or initialContent changes
+  useEffect(() => {
+    if (editor && initialContent) {
+      editor.commands.setContent(initialContent);
+    }
+  }, [editor, initialContent, templateId]);
+
   // Load template variables from database if templateId is provided
   useEffect(() => {
     if (templateId && templateId !== 'default-template') {
@@ -209,63 +218,40 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
       .run();
   }, [editor])
 
-  // // Add a new variable
-  // const handleAddVariable = (variableName: string) => {
-  //   // Check if variable already exists
-  //   if (variables.includes(variableName)) {
-  //     return;
-  //   }
+  // Add a new variable
+  const handleAddVariable = async (variableName: string) => {
+    // Check if variable already exists
+    if (variables.includes(variableName)) {
+      return;
+    }
     
-  //   // Add the new variable to the list
-  //   const updatedVariables = [...variables, variableName];
-  //   setVariables(updatedVariables);
+    // Add the new variable to the list
+    const updatedVariables = [...variables, variableName];
+    setVariables(updatedVariables);
     
-  //   // Update parent component if needed
-  //   if (onVariablesChange) {
-  //     onVariablesChange(updatedVariables);
-  //   }
+    // Update parent component if needed
+    if (onVariablesChange) {
+      onVariablesChange(updatedVariables);
+    }
     
-  //   // Add to preview data
-  //   setLocalPreviewData(prev => ({
-  //     ...prev,
-  //     [variableName]: ''
-  //   }));
-  // };
-
-    // Add a new variable
-    const handleAddVariable = async (variableName: string) => {
-      // Check if variable already exists
-      if (variables.includes(variableName)) {
-        return;
-      }
-      
-      // Add the new variable to the list
-      const updatedVariables = [...variables, variableName];
-      setVariables(updatedVariables);
-      
-      // Update parent component if needed
-      if (onVariablesChange) {
-        onVariablesChange(updatedVariables);
-      }
-      
-      // Add to preview data
-      const updatedPreviewData = {
-        ...localPreviewData,
-        [variableName]: ''
-      };
-      
-      setLocalPreviewData(updatedPreviewData);
-      
-      // If templateId is provided, save preview data to database
-      if (templateId && templateId !== 'default-template') {
-        try {
-          await updatePreviewData(templateId, updatedPreviewData);
-        } catch (error) {
-          console.error('Error updating preview data:', error);
-          message.error('Failed to update preview data');
-        }
-      }
+    // Add to preview data
+    const updatedPreviewData = {
+      ...localPreviewData,
+      [variableName]: ''
     };
+    
+    setLocalPreviewData(updatedPreviewData);
+    
+    // If templateId is provided, save preview data to database
+    if (templateId && templateId !== 'default-template') {
+      try {
+        await updatePreviewData(templateId, updatedPreviewData);
+      } catch (error) {
+        console.error('Error updating preview data:', error);
+        message.error('Failed to update preview data');
+      }
+    }
+  };
 
   // Show edit modal for a variable
   const showEditModal = (variable: string) => {
@@ -910,5 +896,4 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     </Card>
   )
 }
-
 export default EmailTemplateEditor

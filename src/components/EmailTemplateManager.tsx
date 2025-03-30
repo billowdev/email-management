@@ -72,6 +72,7 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
   const [saveLoading, setSaveLoading] = useState<boolean>(false)
   const [createLoading, setCreateLoading] = useState<boolean>(false)
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState<boolean>(false)
+  const [forceEditorKey, setForceEditorKey] = useState<string>('editor-1') // Used to force re-render
   
   // Load templates from API
   useEffect(() => {
@@ -182,6 +183,9 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
       setPreviewData(getPreviewDataObject(newTemplate));
       setNewTemplateName('');
       
+      // Force re-render of editor
+      setForceEditorKey(`editor-${Date.now()}`);
+      
       if (onSelectTemplate) {
         onSelectTemplate(newTemplate, newTemplate.defaultContent);
       }
@@ -203,6 +207,9 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
       setSelectedTemplate(selected);
       setCurrentHtml(selected.defaultContent);
       setPreviewData(getPreviewDataObject(selected));
+      
+      // Force editor re-render with new content by changing the key
+      setForceEditorKey(`editor-${Date.now()}`);
       
       if (onSelectTemplate) {
         onSelectTemplate(selected, selected.defaultContent);
@@ -226,6 +233,9 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
         setSelectedTemplate(firstTemplate);
         setCurrentHtml(firstTemplate.defaultContent);
         setPreviewData(getPreviewDataObject(firstTemplate));
+        
+        // Force editor re-render
+        setForceEditorKey(`editor-${Date.now()}`);
         
         if (onSelectTemplate) {
           onSelectTemplate(firstTemplate, firstTemplate.defaultContent);
@@ -253,6 +263,7 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
     localStorage.setItem('preview-template-id', selectedTemplate.id);
     localStorage.setItem('preview-template-html', currentHtml);
     localStorage.setItem('preview-template-data', JSON.stringify(previewData));
+    localStorage.setItem('preview-template-name', selectedTemplate.name);
     
     // Navigate to preview page
     router.push('/email-preview');
@@ -381,12 +392,6 @@ const handleUpdateVariable = async (variableId: string, updates: Partial<Templat
   const canDeleteTemplate = selectedTemplate && !selectedTemplate.isSystem;
   
   if (loading) {
-    // return (
-    //   <div className="flex justify-center items-center h-screen">
-    //     <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
-    //     <span className="ml-2">Loading templates...</span>
-    //   </div>
-    // );
     return <LoaderComponent />;
   }
   
@@ -395,9 +400,6 @@ const handleUpdateVariable = async (variableId: string, updates: Partial<Templat
       <Content className="container mx-auto p-4 md:p-6">
         <Header className="bg-white p-6 rounded-lg shadow-sm mb-6">
           <div className="flex justify-between items-center">
-            {/* <div>
-                <Title level={3} className="mb-0" style={{ color: 'white' }}>Email Template Editor - Rich text using Tiptap</Title>
-            </div> */}
             <Space>
               {selectedTemplate && (
                 <>
@@ -525,19 +527,15 @@ const handleUpdateVariable = async (variableId: string, updates: Partial<Templat
             
             <Divider />
             
-            {/* Email Template Editor */}
+            {/* Email Template Editor with key to force re-render */}
             <EmailTemplateEditor 
-            initialContent={currentHtml}
-            templateId={selectedTemplate.id}
-            availableVariables={getVariableKeys()}
-            onHtmlChange={handleHtmlChange}
-            previewData={previewData}
-            // onVariablesChange={handleUpdatePreviewData}
-            // onAddVariable={handleAddVariable}
-            // onDeleteVariable={handleDeleteVariable}
-          />
-
-         
+              key={forceEditorKey}
+              initialContent={currentHtml}
+              templateId={selectedTemplate.id}
+              availableVariables={getVariableKeys()}
+              onHtmlChange={handleHtmlChange}
+              previewData={previewData}
+            />
           </Card>
         ) : (
           <Alert
@@ -547,24 +545,6 @@ const handleUpdateVariable = async (variableId: string, updates: Partial<Templat
             showIcon
           />
         )}
-{/*         
-        <Alert
-          message="Tips for using the email editor"
-          description={
-            <ul className="list-disc pl-5 mt-2">
-              <li>Use the variables from the sidebar to personalize your email</li>
-              <li>Add custom variables to extend your template capabilities</li>
-              <li>Toggle the Preview button to see how your email will look with sample data</li>
-              <li>Click "Full Page Preview" to see your email in a dedicated page</li>
-              <li>Export your template to get HTML that works in email clients</li>
-              <li>Click Save to store your changes in the database</li>
-            </ul>
-          }
-          type="info"
-          showIcon
-          icon={<InfoCircleOutlined />}
-          className="mb-6"
-        /> */}
       </Content>
       
       {/* Delete Confirmation Modal */}

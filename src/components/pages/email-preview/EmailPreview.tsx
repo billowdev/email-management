@@ -109,21 +109,21 @@ const EmailPreview: React.FC<EmailPreviewProps> = ({
           <Text strong className="text-lg">Email Preview</Text>
           
           <Space>
-            <Tooltip title="Toggle test data panel">
+            {/* <Tooltip title="Toggle test data panel">
               <Button 
                 onClick={() => setShowVariablePanel(!showVariablePanel)}
                 type={showVariablePanel ? "primary" : "default"}
               >
                 Test Data
               </Button>
-            </Tooltip>
-            <Tooltip title="Toggle mobile view">
+            </Tooltip> */}
+            {/* <Tooltip title="Toggle mobile view">
               <Button 
                 icon={viewMode === 'mobile' ? <LaptopOutlined /> : <MobileOutlined />}
                 onClick={() => setViewMode(viewMode === 'mobile' ? 'desktop' : 'mobile')}
                 type={viewMode === 'mobile' ? 'primary' : 'default'}
               />
-            </Tooltip>
+            </Tooltip> */}
             <Tooltip title="Print preview">
               <Button icon={<PrinterOutlined />} onClick={handlePrintPreview} />
             </Tooltip>

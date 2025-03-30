@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: false,
-  swcMinify: true,
+  // swcMinify: true,
   experimental: {
       //  appDir: true, // Ensure App Router is explicitly enabled
     externalDir: true, // Ensure API Routes are explicitly enabled
