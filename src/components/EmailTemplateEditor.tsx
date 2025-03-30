@@ -423,27 +423,15 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
     let exportDoc = parser.parseFromString(`
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Email Template</title>
-  <style type="text/css">
-    body { margin: 0; padding: 0; min-width: 100%; font-family: Arial, sans-serif; }
-    .variable { color: #2563eb; font-weight: bold; }
-  </style>
-</head>
+
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #D9D9D9;">
   <div style="width: 100%; margin: 0 auto; background-color: #D9D9D9;">
     <div style="max-width: 650px; margin: 0 auto; background-color: #FFFFFF;">
-      <div style="background-color: #2b8fbe; padding: 24px 10px; text-align: center;">
-        <div style="color: #FFFFFF; font-size: 24px; font-weight: bold; line-height: 150%;">Email Header</div>
-      </div>
+  
       <div style="padding: 40px 20px; background-color: #FFFFFF;">
         ${templateContent}
       </div>
-      <div style="background-color: #2b8fbe; padding: 20px 10px; text-align: center;">
-        <div style="color: #FFFFFF; font-size: 16px; line-height: 150%;">© 2025 Company Name. All rights reserved.</div>
-      </div>
+    
     </div>
   </div>
 </body>

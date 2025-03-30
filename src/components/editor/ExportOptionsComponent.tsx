@@ -86,9 +86,9 @@ const ExportOptionsComponent: React.FC<ExportOptionsComponentProps> = ({
         innerContainer.setAttribute('style', `max-width: ${backgroundSettings.maxWidth}; margin: 0 auto; background-color: ${backgroundSettings.containerBgColor};`);
         
         // Create the header
-        const header = doc.createElement('div');
-        header.setAttribute('style', `background-color: ${backgroundSettings.headerBgColor}; padding: 24px 10px; text-align: center;`);
-        header.innerHTML = '<div style="color: #FFFFFF; font-size: 24px; font-weight: bold; line-height: 150%;">Email Header</div>';
+        // const header = doc.createElement('div');
+        // header.setAttribute('style', `background-color: ${backgroundSettings.headerBgColor}; padding: 24px 10px; text-align: center;`);
+        // header.innerHTML = '<div style="color: #FFFFFF; font-size: 24px; font-weight: bold; line-height: 150%;">Email Header</div>';
         
         // Create the content section
         const content = doc.createElement('div');
@@ -96,14 +96,14 @@ const ExportOptionsComponent: React.FC<ExportOptionsComponentProps> = ({
         content.innerHTML = emailContent;
         
         // Create the footer
-        const footer = doc.createElement('div');
-        footer.setAttribute('style', `background-color: ${backgroundSettings.footerBgColor}; padding: 20px 10px; text-align: center;`);
-        footer.innerHTML = '<div style="color: #FFFFFF; font-size: 16px; line-height: 150%;">© 2025 Company Name. All rights reserved.</div>';
+        // const footer = doc.createElement('div');
+        // footer.setAttribute('style', `background-color: ${backgroundSettings.footerBgColor}; padding: 20px 10px; text-align: center;`);
+        // footer.innerHTML = '<div style="color: #FFFFFF; font-size: 16px; line-height: 150%;">© 2025 Company Name. All rights reserved.</div>';
         
         // Assemble the structure
-        innerContainer.appendChild(header);
+        // innerContainer.appendChild(header);
         innerContainer.appendChild(content);
-        innerContainer.appendChild(footer);
+        // innerContainer.appendChild(footer);
         outerContainer.appendChild(innerContainer);
         doc.body.appendChild(outerContainer);
       }
