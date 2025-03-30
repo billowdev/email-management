@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wow TipTap Editor Wahh",
+  title: "Email Editor using TipTap",
   description: "Just poc the rich text editor",
 };
 
